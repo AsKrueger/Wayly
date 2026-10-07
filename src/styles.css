@@ -1,0 +1,299 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --color-brand: #176b57;
+  --color-brand-hover: #105443;
+  --color-brand-soft: #e7f2ee;
+  --color-accent: #e6a94b;
+  --color-accent-soft: #fbf1dd;
+  --color-background: #f8f8f4;
+  --color-surface: #fff;
+  --color-surface-muted: #f0f3ef;
+  --color-text: #172923;
+  --color-text-muted: #52665e;
+  --color-border: #d6e0da;
+  --color-danger: #a32d35;
+  --color-danger-soft: #fff0ef;
+  --color-focus: #a34d0a;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: clamp(1.5rem, 3vw, 2rem);
+  --font-size-display: clamp(2.5rem, 7vw, 5rem);
+  --line-height-body: 1.65;
+  --line-height-heading: 1.08;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1rem 2.5rem rgb(23 41 35 / 7%);
+  --shadow-raised: 0 0.4rem 1rem rgb(23 41 35 / 10%);
+
+  --content-width: 72rem;
+  --page-gutter: clamp(1.25rem, 5vw, 4rem);
+  --section-gap: clamp(3.5rem, 8vw, 7rem);
+
+  --transition-fast: 140ms ease;
+  --transition-standard: 220ms ease;
+  --z-header: 10;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 18rem;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space-6);
+}
+
+body {
+  min-width: 18rem;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
+.page-container {
+  width: min(100% - var(--page-gutter) * 2, var(--content-width));
+  margin-inline: auto;
+}
+
+.button {
+  position: relative;
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.25rem;
+  background: var(--color-brand);
+  color: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.button:hover {
+  background: var(--color-brand-hover);
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+.button:focus-visible {
+  outline-offset: 4px;
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  background: #e5e9e6;
+  color: #58645e;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button[aria-busy="true"] {
+  cursor: progress;
+}
+
+.button[aria-busy="true"]::after {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: button-spinner 700ms linear infinite;
+}
+
+@keyframes button-spinner {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.button--secondary {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-brand);
+}
+
+.button--secondary:hover {
+  border-color: var(--color-brand);
+  background: var(--color-brand-soft);
+  box-shadow: none;
+}
+
+.surface-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field__label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.field__control {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #8a9b92;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.field__control::placeholder {
+  color: #62756b;
+  opacity: 1;
+}
+
+.field__control:hover:not(:disabled) {
+  border-color: var(--color-brand);
+}
+
+.field__control:focus-visible {
+  border-color: var(--color-brand);
+  outline: 3px solid var(--color-brand-soft);
+  outline-offset: 1px;
+}
+
+.field__control[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.field__control:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.field__hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.field__error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.75rem;
+  background: var(--color-brand-soft);
+  color: #124c3d;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.badge--accent {
+  background: var(--color-accent-soft);
+  color: #65420d;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
