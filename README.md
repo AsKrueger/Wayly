@@ -2,7 +2,7 @@
 
 > Tu tiempo. Tu lugar. Tu plan.
 
-Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona, combinando tiempo disponible, presupuesto, ubicación y preferencias para proponer planes concretos. Este repositorio contiene la base técnica inicial; todavía no implementa la experiencia de producto.
+Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona, combinando tiempo disponible, presupuesto, ubicación y preferencias para proponer planes concretos. La pantalla inicial permite seleccionar preferencias y explorar lugares de ejemplo locales; todavía no genera recomendaciones personalizadas.
 
 ## Stack inicial
 
@@ -26,7 +26,7 @@ npm ci
 npm start
 ```
 
-La aplicación queda disponible en `http://localhost:4200/`. La ruta inicial muestra una página provisional, no la experiencia Discover.
+La aplicación queda disponible en `http://localhost:4200/`. La ruta inicial es Discover: permite elegir preferencias básicas y filtra un conjunto local de lugares ficticios. No produce recomendaciones personalizadas.
 
 ## Calidad
 
@@ -53,10 +53,12 @@ src/
 └── styles.css
 ```
 
-La estructura crecerá conforme se incorporen funcionalidades. No se incluyen todavía APIs, mapa, Firebase, autenticación ni lógica del dominio.
+La estructura crecerá conforme se incorporen funcionalidades. Existen modelos mínimos para lugares y preferencias, pero todavía no se incluyen APIs, mapas, Firebase, autenticación ni lógica avanzada de recomendaciones.
 
 ## Documentación del producto
 
 La definición inicial de producto y arquitectura está en [`docs/`](docs/).
+
+La pantalla Discover, sus datos de ejemplo y sus interacciones están descritos en [docs/DISCOVER.md](docs/DISCOVER.md).
 
 La identidad visual, tokens y estados accesibles se describen en [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).

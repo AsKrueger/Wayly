@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { HomePageComponent } from './home-page.component';
+import { DiscoverPageComponent } from './features/discover/discover-page.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomePageComponent,
-    title: 'Wayly',
+    component: DiscoverPageComponent,
+    title: 'Descubre · Wayly',
   },
 ];
