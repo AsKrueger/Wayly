@@ -8,6 +8,7 @@ import {
 } from '../../core/domain/services/recommendation-engine';
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
 import { DiscoverStore } from './state/discover-store.service';
+import { PlaceMapComponent } from './map/place-map.component';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -18,7 +19,7 @@ interface PreferenceOption<T extends string> {
 @Component({
   selector: 'app-discover-page',
   standalone: true,
-  imports: [PlaceCardComponent],
+  imports: [PlaceCardComponent, PlaceMapComponent],
   providers: [DiscoverStore],
   template: `
     <header class="discover-header">
@@ -179,9 +180,28 @@ interface PreferenceOption<T extends string> {
           } @else if (store.hasNoVisiblePlaces()) {
             <p class="empty-message">No hay lugares compatibles con estas preferencias según los datos disponibles. Prueba con otra opción.</p>
           } @else {
+            <app-place-map
+              [places]="store.visiblePlaces()"
+              [selectedPlaceId]="selectedPlaceId()"
+              (placeSelected)="selectPlaceFromMap($event)"
+            />
             <div class="place-grid">
               @for (recommendation of store.recommendations(); track recommendation.place.id) {
-                <article class="recommendation">
+                <article
+                  class="recommendation"
+                  [class.recommendation--selected]="selectedPlaceId() === recommendation.place.id"
+                  (click)="selectPlace(recommendation.place.id)"
+                >
+                  <button
+                    class="recommendation__select"
+                    type="button"
+                    [attr.id]="'place-result-' + recommendation.place.id"
+                    [attr.aria-pressed]="selectedPlaceId() === recommendation.place.id"
+                    [attr.aria-label]="'Seleccionar lugar: ' + recommendation.place.name"
+                    (click)="selectPlace(recommendation.place.id)"
+                  >
+                    {{ selectedPlaceId() === recommendation.place.id ? 'Lugar seleccionado' : 'Seleccionar lugar' }}
+                  </button>
                   <p class="recommendation__score">
                     Afinidad orientativa: {{ scoreLabel(recommendation.score) }}/100
                   </p>
@@ -259,17 +279,21 @@ export class DiscoverPageComponent {
 
   readonly hasGenerated = signal(false);
   readonly isRetrying = signal(false);
+  readonly selectedPlaceId = signal<string | null>(null);
 
   toggleActivityType(activityType: PlaceCategory): void {
     this.store.toggleActivityType(activityType);
+    this.selectedPlaceId.set(null);
   }
 
   setAvailableTime(availableTime: AvailableTime): void {
     this.store.setAvailableTime(availableTime);
+    this.selectedPlaceId.set(null);
   }
 
   setBudget(budget: BudgetRange): void {
     this.store.setBudget(budget);
+    this.selectedPlaceId.set(null);
   }
 
   async retryLoading(): Promise<void> {
@@ -289,6 +313,18 @@ export class DiscoverPageComponent {
 
   editPreferences(): void {
     this.hasGenerated.set(false);
+    this.selectedPlaceId.set(null);
+  }
+
+  selectPlace(placeId: string): void {
+    this.selectedPlaceId.set(placeId);
+  }
+
+  selectPlaceFromMap(placeId: string): void {
+    this.selectPlace(placeId);
+    const result = document.getElementById(`place-result-${placeId}`);
+    result?.focus({ preventScroll: true });
+    result?.scrollIntoView?.({ block: 'nearest' });
   }
 
   verificationLabel(recommendation: PlaceRecommendation): string {

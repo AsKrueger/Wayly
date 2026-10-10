@@ -20,6 +20,8 @@
 
 Missing optional values mean the information is unknown or unavailable; the model does not assign defaults or infer coordinates, prices, durations or hours. `PlaceDataStatus` distinguishes fictional demo entries, unverified provider data and verified data. `PlaceOpeningHours` carries weekday and local clock-time text; timezone and exception dates are not defined at this MVP stage.
 
+Discover displays a map marker only when both coordinates are finite and latitude/longitude fall within their valid geographic ranges (`[-90, 90]` and `[-180, 180]`). Invalid or absent coordinates omit only the map marker, never the place from the list. No coordinate is inferred from a place name, description or textual location.
+
 ## Fixtures
 
 `src/app/features/discover/data/sample-places.ts` contains eight intentionally fictional records across all four categories. Stable `demo-` identifiers, `source: 'wayly-demo'` and `dataStatus: 'fictional'` are required on each record. Optional budget levels and visit durations are explicitly illustrative and appear with that disclaimer in the UI. No coordinates, opening hours or exact prices are invented.

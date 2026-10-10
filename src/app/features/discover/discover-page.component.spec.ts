@@ -1,9 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { PlaceCatalog } from '../../core/application/ports/place-catalog';
 import { SamplePlaceCatalog } from './data/sample-place-catalog.service';
 import { DiscoverPageComponent } from './discover-page.component';
+import { PlaceMapComponent } from './map/place-map.component';
 import { SAMPLE_PLACES } from './data/sample-places';
 import { routes } from '../../app.routes';
 
@@ -164,6 +166,39 @@ describe('DiscoverPageComponent', () => {
     expect(page?.textContent).not.toContain('Mercado de la Plaza');
     expect(page?.querySelector('.proposal-preferences')?.textContent)
       .toContain('Gastronomía · 2 horas · Presupuesto Económico');
+  });
+
+  it('supports accessible list selection and explains why the selection has no marker', async () => {
+    const harness = await loadDiscoverPage();
+    generateProposal(harness);
+    const page = harness.routeNativeElement;
+    const result = page?.querySelector<HTMLButtonElement>('.recommendation__select');
+
+    expect(result?.type).toBe('button');
+    expect(result?.getAttribute('aria-pressed')).toBe('false');
+    result?.click();
+    harness.fixture.detectChanges();
+
+    expect(result?.getAttribute('aria-pressed')).toBe('true');
+    expect(result?.closest('.recommendation')?.classList.contains('recommendation--selected')).toBe(true);
+    expect(page?.querySelector('app-place-map [role="status"]')?.textContent)
+      .toContain('Galería Patio Abierto no tiene coordenadas válidas');
+  });
+
+  it('synchronizes a map selection with the matching result card', async () => {
+    const harness = await loadDiscoverPage();
+    generateProposal(harness);
+    const map = harness.fixture.debugElement
+      .query(By.directive(PlaceMapComponent)).componentInstance as PlaceMapComponent;
+
+    map.placeSelected.emit('demo-open-gallery');
+    harness.fixture.detectChanges();
+
+    const selectedResult = harness.routeNativeElement
+      ?.querySelector<HTMLElement>('#place-result-demo-open-gallery');
+    expect(selectedResult?.getAttribute('aria-pressed')).toBe('true');
+    expect(selectedResult?.closest('.recommendation')
+      ?.classList.contains('recommendation--selected')).toBe(true);
   });
 
   it('announces a catalog load failure instead of showing an empty success state', async () => {

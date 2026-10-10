@@ -8,36 +8,34 @@ The `/` route lets a visitor select activity categories, available time and budg
 
 - The component-scoped `DiscoverStore` is the single source of truth for the asynchronous catalog lifecycle and Discover preferences. It uses one discriminated catalog state (`loading`, `success`, or `error`) so failures cannot be confused with empty results.
 - The store owns selected categories, available time and budget. The initial category is Culture; clearing all category checkboxes means all categories. Recommendations, scores, result count, empty/no-match states and the preference summary derive from catalog data and preferences.
-- `DiscoverPageComponent` owns only the current presentation stage (preferences or proposal) and the transient retry-button busy state. Returning to preferences does not destroy the page-scoped store or reset preferences.
-
-## Implementation
-
-- `src/app/features/discover/state/discover-store.service.ts` coordinates catalog loading and reactive Discover state; it is scoped to the page rather than provided globally.
-- `src/app/features/discover/discover-page.component.ts` owns the preference and proposal presentations and their synchronous transition.
-- `src/app/features/discover/discover-page.component.css` provides the responsive layout using global design tokens.
-- `src/app/core/domain/models/place.ts` defines a framework-independent place with optional location, budget, duration and hours; `place-category.ts` defines controlled categories.
-- `src/app/core/domain/models/discover-preferences.ts` defines category, time and budget preferences without Angular dependencies.
-- `src/app/core/application/ports/place-catalog.ts` defines the typed async catalog contract; `SamplePlaceCatalog` provides the local fixtures.
-- `src/app/features/discover/data/sample-places.ts` contains fictional data independent from templates.
-- `src/app/shared/components/place-card.component.ts` renders the place details available in each result.
-- The pure `recommendPlaces` engine filters known incompatibilities, scores compatible results and returns structured reasons, score breakdown and verification state. See [RECOMMENDATION-ENGINE.md](RECOMMENDATION-ENGINE.md) for exact rules.
+- `DiscoverPageComponent` owns the preferences/proposal presentation stage, the selected place shared by the list and map, and the transient retry-button busy state. Returning to preferences does not destroy the page-scoped store or reset preferences.
 
 ## Proposal flow
 
 1. The user adjusts category checkboxes, time and budget. No proposal is shown before an explicit request.
-2. While the async catalog is loading, generation is disabled and a loading status is shown. On catalog error, the user sees an error and can retry; the error is not represented as an empty proposal.
-3. When catalog loading succeeds, “Generar mi propuesta” synchronously switches to the result stage using the current computed engine output. No artificial generation delay or duplicate catalog request is introduced.
-4. The result view shows the preferences used, score (labelled as indicative affinity rather than objective quality), criterion contributions, compatibility reasons, partial/complete verification, and available place details.
-5. “Modificar preferencias” returns to the same controls with their values preserved. The user can change them and generate an updated proposal.
+2. While the asynchronous catalog is loading, generation is disabled and a loading status is shown. On catalog error, the user sees an error and can retry; the error is not represented as an empty proposal.
+3. When catalog loading succeeds, “Generar mi propuesta” synchronously switches to current computed engine results. It does not create a fake generation delay or issue another catalog request.
+4. The proposal view shows the preferences used, score (labelled as indicative affinity rather than objective quality), criterion contributions, compatibility reasons, partial/complete verification, and available place details.
+5. “Modificar preferencias” returns to the same controls with values preserved. The user can change them and generate an updated proposal.
 
-A successfully empty catalog and a non-empty catalog with no compatible places have distinct messages. Partial recommendations remain visible and identify the data that could not be verified. No unavailable field is inferred.
+A successfully empty catalog and a non-empty catalog with no compatible places have distinct messages. Partial recommendations remain visible and identify data that could not be verified. No unavailable field is inferred.
 
-Native checkboxes and radio controls retain keyboard support and visible focus styling. The proposal is a single responsive view; there is no route transition that would reset local preferences.
+## Map and list interaction
 
-## Limitations
+`app-place-map` adapts Leaflet through the application `PlaceMapAdapter` port. The map receives only the current recommended places and produces markers only for finite, in-range coordinates (latitude `[-90, 90]`, longitude `[-180, 180]`). Places without valid coordinates are never removed from the list.
 
-All current places are fictional examples; budget and duration details are illustrative. The affinity score is only an ordering aid from the documented engine criteria. There are no external providers, maps, geolocation, route optimization, multiple activities, persistence or sharing.
+List and map selection are bound to one Discover-owned selected-place ID. Clicking or keyboard-selecting a recommendation highlights the corresponding marker when one exists. Selecting a keyboard-accessible map marker highlights and focuses its list result. Selecting an unlocated place keeps the list selection and announces that it cannot be represented on the map. Changing preferences clears selection so stale markers are not represented as current.
+
+If no recommendations have valid coordinates, no Leaflet map or tile request is initialized; the UI explains the limitation and keeps the full list available. If initialization or tile loading fails, Discover reports the map error, retains list interactions, and offers a map retry. No asynchronous loading state is fabricated for synchronous map initialization. OSM attribution is displayed, and the map's operational restrictions are recorded in [ADR-0008](ADR/ADR-0008-Interactive-Map-Provider.md).
+
+## Responsive and accessible behavior
+
+The map and result list stack in a single column and remain within the viewport at mobile widths. The map is a labelled region with keyboard-enabled Leaflet markers; each result card has a native keyboard-operable selection button with a visible focus ring and `aria-pressed` state. Cards can also be selected by pointer. Selection is not indicated by color alone. OSM attribution links to its copyright and ODbL information.
+
+## Data and limitations
+
+All current places are fictional examples; budget and duration details are illustrative. Current fixtures deliberately contain no coordinates, so the map displays the no-coordinate fallback until real, valid coordinates become available from an appropriately licensed source. No geocoding, location permission, external place search, route optimization, multiple activities, persistence or sharing is implemented.
 
 ## Tests
 
-`src/app/core/domain/services/recommendation-engine.spec.ts` checks pure matching, missing data, explanations, scoring, ordering and determinism. `src/app/features/discover/state/discover-store.service.spec.ts` checks catalog lifecycle and reactive engine integration. `src/app/features/discover/discover-page.component.spec.ts` checks the pending-to-proposal transition, score and reasons presentation, preference preservation and regeneration, no-match and empty-catalog states, and catalog errors/retry. The tests use controlled local data and do not call external services.
+`src/app/features/discover/map/map-markers.spec.ts` verifies coordinate validation and marker eligibility. `place-map.component.spec.ts` uses a fake adapter to check map/list boundary behavior, marker updates, synchronized selection, and initialization/tile error fallback without network access. `discover-page.component.spec.ts` verifies proposal generation, keyboard selection and the no-coordinate explanation. Recommendation rules remain covered in `src/app/core/domain/services/recommendation-engine.spec.ts`.

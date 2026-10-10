@@ -197,6 +197,52 @@ textarea {
   box-shadow: var(--shadow-card);
 }
 
+.wayly-map-marker {
+  display: grid;
+  width: 1.875rem;
+  height: 1.875rem;
+  place-items: center;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-surface);
+  box-shadow: 0 1px 5px rgb(20 37 29 / 45%);
+  font-size: 0.85rem;
+}
+
+.wayly-map-marker--selected {
+  width: 2.125rem;
+  height: 2.125rem;
+  border: 3px double var(--color-text);
+  background: var(--color-accent);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.recommendation--selected {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+.recommendation__select {
+  min-height: 2.75rem;
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  color: var(--color-brand);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recommendation__select:hover,
+.recommendation--selected .recommendation__select {
+  border-color: var(--color-brand);
+  background: var(--color-brand-soft);
+}
+
 .field {
   display: grid;
   gap: var(--space-2);

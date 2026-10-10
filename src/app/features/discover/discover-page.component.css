@@ -455,6 +455,8 @@
 
 .recommendation {
   min-width: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
 }
 
 .recommendation__score {
