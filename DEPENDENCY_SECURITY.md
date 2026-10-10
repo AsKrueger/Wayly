@@ -74,6 +74,12 @@ Review could run. Dependabot security updates and private vulnerability
 reporting remain disabled; Secret Protection was not enabled. Push protection
 and branch-protection rules have not been verified.
 
+When those alerts were enabled, GitHub reported **62 vulnerabilities** on the
+default branch (1 critical, 33 high, 24 moderate and 4 low). This is a separate
+GitHub report from the `npm audit` totals above; the totals are not directly
+comparable and should not be added together. Review individual alerts in the
+repository's Security tab when triaging differences.
+
 The initial audit discovery ran on Node.js 24.19.0/npm 11.17.0, outside the
 project's declared Node.js support range. Full local validation was subsequently
 re-run successfully on Node.js 22.23.3/npm 11.17.0, including `npm ci`,
