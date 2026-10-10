@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { PlaceCatalog } from '../../core/application/ports/place-catalog';
 import { AvailableTime, BudgetRange, DiscoverPreferences } from '../../core/domain/models/discover-preferences';
-import { PlaceCategory } from '../../core/domain/models/place';
+import { Place } from '../../core/domain/models/place';
+import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../core/domain/models/place-category';
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
-import { SAMPLE_PLACES } from './data/sample-places';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -141,16 +142,22 @@ interface PreferenceOption<T extends string> {
             <span class="places-heading__count">{{ filteredPlaces().length }} ejemplos</span>
           </div>
 
-          <div class="place-grid">
-            @for (place of filteredPlaces(); track place.id) {
-              <app-place-card [place]="place" />
-            } @empty {
-              <p class="empty-message">No hay lugares de ejemplo para esta categoría todavía.</p>
-            }
-          </div>
+          @if (placesError()) {
+            <p class="empty-message" role="alert">{{ placesError() }}</p>
+          } @else if (isLoadingPlaces()) {
+            <p class="empty-message" role="status">Cargando lugares de ejemplo…</p>
+          } @else {
+            <div class="place-grid">
+              @for (place of filteredPlaces(); track place.id) {
+                <app-place-card [place]="place" />
+              } @empty {
+                <p class="empty-message">No hay lugares de ejemplo para esta categoría todavía.</p>
+              }
+            </div>
+          }
           <p class="sample-note">
             <span aria-hidden="true">i</span>
-            Estos datos son ficticios y solo ilustran el tipo de información que podrá mostrar Wayly.
+            Los lugares son ficticios. Presupuesto y duración, cuando aparecen, son datos ilustrativos; horarios y ubicación exacta no están disponibles.
           </p>
         </section>
       </section>
@@ -170,11 +177,14 @@ interface PreferenceOption<T extends string> {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscoverPageComponent {
+  private readonly placeCatalog = inject(PlaceCatalog);
+  private readonly places = signal<readonly Place[]>([]);
+
   readonly activityOptions: readonly (PreferenceOption<PlaceCategory> & { readonly icon: string })[] = [
-    { value: 'culture', label: 'Cultura', icon: '✳' },
-    { value: 'nature', label: 'Naturaleza', icon: '⌁' },
-    { value: 'food', label: 'Gastronomía', icon: '◇' },
-    { value: 'leisure', label: 'Ocio', icon: '☼' },
+    { value: 'culture', label: PLACE_CATEGORY_LABELS.culture, icon: '✳' },
+    { value: 'nature', label: PLACE_CATEGORY_LABELS.nature, icon: '⌁' },
+    { value: 'food', label: PLACE_CATEGORY_LABELS.food, icon: '◇' },
+    { value: 'leisure', label: PLACE_CATEGORY_LABELS.leisure, icon: '☼' },
   ];
 
   readonly timeOptions: readonly PreferenceOption<AvailableTime>[] = [
@@ -195,8 +205,10 @@ export class DiscoverPageComponent {
     budget: 'economical',
   });
   readonly hasContinued = signal(false);
+  readonly isLoadingPlaces = signal(true);
+  readonly placesError = signal<string | null>(null);
   readonly filteredPlaces = computed(() =>
-    SAMPLE_PLACES.filter((place) => place.category === this.preferences().activityType),
+    this.places().filter((place) => place.category === this.preferences().activityType),
   );
   readonly selectedPreferencesSummary = computed(() => {
     const current = this.preferences();
@@ -206,6 +218,24 @@ export class DiscoverPageComponent {
 
     return `${activity} · ${time} · Presupuesto ${budget}`;
   });
+
+  constructor() {
+    void this.loadPlaces();
+  }
+
+  private async loadPlaces(): Promise<void> {
+    this.isLoadingPlaces.set(true);
+    this.placesError.set(null);
+
+    try {
+      this.places.set(await this.placeCatalog.getAll());
+    } catch (error: unknown) {
+      console.error('Unable to load places for Discover.', error);
+      this.placesError.set('No se pudieron cargar los lugares de ejemplo. Inténtalo de nuevo más tarde.');
+    } finally {
+      this.isLoadingPlaces.set(false);
+    }
+  }
 
   setActivityType(activityType: PlaceCategory): void {
     this.preferences.update((current) => ({ ...current, activityType }));

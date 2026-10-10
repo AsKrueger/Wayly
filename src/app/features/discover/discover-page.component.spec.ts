@@ -1,17 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { PlaceCatalog } from '../../core/application/ports/place-catalog';
+import { SamplePlaceCatalog } from './data/sample-place-catalog.service';
 import { DiscoverPageComponent } from './discover-page.component';
 import { routes } from '../../app.routes';
 
 describe('DiscoverPageComponent', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   async function loadDiscoverPage(): Promise<RouterTestingHarness> {
     await TestBed.configureTestingModule({
-      providers: [provideRouter(routes)],
+      providers: [
+        provideRouter(routes),
+        { provide: PlaceCatalog, useClass: SamplePlaceCatalog },
+      ],
     });
 
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/', DiscoverPageComponent);
+    await harness.fixture.whenStable();
     harness.fixture.detectChanges();
 
     return harness;
@@ -91,5 +101,33 @@ describe('DiscoverPageComponent', () => {
 
     expect(page?.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
     expect(page?.textContent).toContain('Mercado de la Plaza');
+  });
+
+  it('announces a catalog load failure instead of showing an empty success state', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        {
+          provide: PlaceCatalog,
+          useValue: { getAll: () => Promise.reject(new Error('fixture read failed')) },
+        },
+      ],
+    });
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/', DiscoverPageComponent);
+    await harness.fixture.whenStable();
+    harness.fixture.detectChanges();
+
+    expect(harness.routeNativeElement?.querySelector('[role="alert"]')?.textContent).toContain(
+      'No se pudieron cargar los lugares de ejemplo',
+    );
+    expect(harness.routeNativeElement?.querySelectorAll('app-place-card')).toHaveLength(0);
+    expect(consoleError).toHaveBeenCalledWith(
+      'Unable to load places for Discover.',
+      expect.any(Error),
+    );
+
   });
 });
