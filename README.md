@@ -2,7 +2,7 @@
 
 > Tu tiempo. Tu lugar. Tu plan.
 
-Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona, combinando tiempo disponible, presupuesto y preferencias para proponer actividades. Discover genera propuestas explicables a partir de lugares locales de demostración.
+Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona, combinando tiempo disponible, presupuesto y preferencias para proponer actividades. Discover genera propuestas explicables a partir de lugares locales de demostración y permite comparar y elegir entre sus recomendaciones compatibles.
 
 ## Stack inicial
 

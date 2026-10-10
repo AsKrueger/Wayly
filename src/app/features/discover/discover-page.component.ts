@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AvailableTime, BudgetRange } from '../../core/domain/models/discover-preferences';
 import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../core/domain/models/place-category';
 import {
@@ -9,6 +9,7 @@ import {
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
 import { DiscoverStore } from './state/discover-store.service';
 import { PlaceMapComponent } from './map/place-map.component';
+import { createPlanBattle, PlanBattleComparison } from './application/plan-battle';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -180,6 +181,115 @@ interface PreferenceOption<T extends string> {
           } @else if (store.hasNoVisiblePlaces()) {
             <p class="empty-message">No hay lugares compatibles con estas preferencias según los datos disponibles. Prueba con otra opción.</p>
           } @else {
+            @if (!isPlanBattleOpen()) {
+              <div class="plan-battle__entry">
+                <button
+                  class="button button--secondary"
+                  type="button"
+                  [disabled]="planBattle().kind !== 'ready'"
+                  (click)="openPlanBattle()"
+                >
+                  Comparar dos opciones
+                </button>
+                @if (planBattle(); as comparison) {
+                  @if (comparison.kind === 'insufficient') {
+                    <p role="status">
+                      Solo hay {{ comparison.availableAlternatives }} alternativa compatible; se necesitan dos para comparar.
+                    </p>
+                  }
+                }
+              </div>
+            }
+            @if (isPlanBattleOpen()) {
+              @if (planBattle(); as comparison) {
+                @if (comparison.kind === 'ready') {
+                  <section id="plan-battle-panel" class="plan-battle" aria-labelledby="plan-battle-title">
+                    <div class="plan-battle__heading">
+                      <div>
+                        <span class="step-label">PLAN BATTLE</span>
+                        <h3 id="plan-battle-title">Compara tus dos opciones mejor posicionadas</h3>
+                        <p>Las alternativas proceden de la propuesta actual y respetan sus filtros de compatibilidad.</p>
+                      </div>
+                    </div>
+                    <p class="plan-battle__affinity" role="status">
+                      {{ planBattleAffinitySummary(comparison) }}
+                    </p>
+                    <div class="plan-battle__grid">
+                      @for (recommendation of comparison.alternatives; track recommendation.place.id) {
+                        <article class="plan-battle__option">
+                          <p class="recommendation__score">
+                            Afinidad orientativa: {{ planBattleScoreLabel(recommendation.score) }}/100
+                          </p>
+                          <p class="recommendation__score-breakdown">
+                            Presupuesto: {{ scoreCriterionLabel(recommendation.scoreBreakdown.budget) }} ·
+                            Tiempo: {{ scoreCriterionLabel(recommendation.scoreBreakdown.duration) }}
+                          </p>
+                          <div
+                            class="recommendation__verification"
+                            [class.recommendation__verification--partial]="recommendation.verification === 'partial'"
+                          >
+                            {{ verificationLabel(recommendation) }}
+                          </div>
+                          <app-place-card [place]="recommendation.place" />
+                          <dl class="plan-battle__details">
+                            <div>
+                              <dt>Ubicación</dt>
+                              <dd>{{ recommendation.place.location ?? 'Sin datos' }}</dd>
+                            </div>
+                            <div>
+                              <dt>Presupuesto</dt>
+                              <dd>
+                                {{ recommendation.place.budgetLevel
+                                  ? budgetLabel(recommendation.place.budgetLevel)
+                                  : 'Sin datos' }}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Duración estimada</dt>
+                              <dd>
+                                {{ recommendation.place.estimatedVisitMinutes !== undefined
+                                  ? recommendation.place.estimatedVisitMinutes + ' min'
+                                  : 'Sin datos' }}
+                              </dd>
+                            </div>
+                          </dl>
+                          <ul
+                            class="recommendation__reasons"
+                            [attr.aria-label]="'Motivos para ' + recommendation.place.name"
+                          >
+                            @for (reason of recommendation.reasons; track $index) {
+                              <li>{{ recommendationReasonLabel(reason) }}</li>
+                            }
+                          </ul>
+                          <button
+                            class="button plan-battle__choose"
+                            type="button"
+                            [attr.aria-pressed]="selectedPlaceId() === recommendation.place.id"
+                            (click)="selectPlanBattleAlternative(recommendation.place.id)"
+                          >
+                            {{ selectedPlaceId() === recommendation.place.id
+                              ? 'Opción elegida'
+                              : 'Elegir ' + recommendation.place.name }}
+                          </button>
+                        </article>
+                      }
+                    </div>
+                    @if (selectedPlanBattlePlaceName(); as selectedName) {
+                      <p class="plan-battle__selection" role="status" aria-live="polite">
+                        Has elegido {{ selectedName }}. Puedes cambiar tu elección cuando quieras.
+                      </p>
+                    }
+                    <p class="plan-battle__note">
+                      La afinidad refleja únicamente el ajuste según tus preferencias y los datos disponibles; no es una valoración objetiva.
+                      Los campos sin datos no se han estimado.
+                    </p>
+                    <button class="button button--secondary" type="button" (click)="closePlanBattle()">
+                      Volver a la propuesta
+                    </button>
+                  </section>
+                }
+              }
+            } @else {
             <app-place-map
               [places]="store.visiblePlaces()"
               [selectedPlaceId]="selectedPlaceId()"
@@ -227,6 +337,7 @@ interface PreferenceOption<T extends string> {
                 </article>
               }
             </div>
+            }
           }
           <p class="sample-note">
             <span aria-hidden="true">i</span>
@@ -280,6 +391,8 @@ export class DiscoverPageComponent {
   readonly hasGenerated = signal(false);
   readonly isRetrying = signal(false);
   readonly selectedPlaceId = signal<string | null>(null);
+  readonly isPlanBattleOpen = signal(false);
+  readonly planBattle = computed(() => createPlanBattle(this.store.recommendations()));
 
   toggleActivityType(activityType: PlaceCategory): void {
     this.store.toggleActivityType(activityType);
@@ -307,13 +420,58 @@ export class DiscoverPageComponent {
 
   generateProposal(): void {
     if (this.store.catalogState().kind === 'success') {
+      this.isPlanBattleOpen.set(false);
       this.hasGenerated.set(true);
     }
   }
 
   editPreferences(): void {
+    this.isPlanBattleOpen.set(false);
     this.hasGenerated.set(false);
     this.selectedPlaceId.set(null);
+  }
+
+  openPlanBattle(): void {
+    if (this.planBattle().kind === 'ready') {
+      this.selectedPlaceId.set(null);
+      this.isPlanBattleOpen.set(true);
+    }
+  }
+
+  closePlanBattle(): void {
+    this.isPlanBattleOpen.set(false);
+  }
+
+  selectPlanBattleAlternative(placeId: string): void {
+    this.selectedPlaceId.set(placeId);
+  }
+
+  selectedPlanBattlePlaceName(): string | null {
+    const selectedPlaceId = this.selectedPlaceId();
+    const comparison = this.planBattle();
+
+    return comparison.kind === 'ready'
+      ? comparison.alternatives.find(({ place }) => place.id === selectedPlaceId)?.place.name ?? null
+      : null;
+  }
+
+  planBattleAffinitySummary(comparison: PlanBattleComparison): string {
+    if (comparison.kind !== 'ready') {
+      return '';
+    }
+
+    if (comparison.affinity === 'tie') {
+      return 'Las dos opciones tienen la misma afinidad orientativa; el motor no establece una ganadora.';
+    }
+
+    const higher = comparison.affinity === 'first-higher'
+      ? comparison.alternatives[0]
+      : comparison.alternatives[1];
+    return `${higher.place.name} tiene ${this.planBattleScoreLabel(comparison.affinityDifference)} puntos más de afinidad orientativa según tus preferencias. Esto no determina cuál debes elegir.`;
+  }
+
+  planBattleScoreLabel(score: number): string {
+    return score.toFixed(2);
   }
 
   selectPlace(placeId: string): void {
@@ -362,7 +520,7 @@ export class DiscoverPageComponent {
     }
   }
 
-  private budgetLabel(budget: BudgetRange): string {
+  budgetLabel(budget: BudgetRange): string {
     return {
       economical: 'económico',
       medium: 'medio',

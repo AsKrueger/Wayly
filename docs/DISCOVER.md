@@ -16,7 +16,9 @@ The `/` route lets a visitor select activity categories, available time and budg
 2. While the asynchronous catalog is loading, generation is disabled and a loading status is shown. On catalog error, the user sees an error and can retry; the error is not represented as an empty proposal.
 3. When catalog loading succeeds, “Generar mi propuesta” synchronously switches to current computed engine results. It does not create a fake generation delay or issue another catalog request.
 4. The proposal view shows the preferences used, score (labelled as indicative affinity rather than objective quality), criterion contributions, compatibility reasons, partial/complete verification, and available place details.
-5. “Modificar preferencias” returns to the same controls with values preserved. The user can change them and generate an updated proposal.
+5. When at least two compatible recommendations exist, “Comparar dos opciones” opens Plan Battle with the two highest-ranked results from the existing recommendation engine. It presents each result's current score, criterion contributions, reasons, verification state, category, description and available location, budget and duration. Unknown location, budget or duration is explicitly shown as “Sin datos”.
+6. The affinity explanation describes the relative engine scores without declaring an objective winner. Exact score ties are identified as ties. The user can choose either option, change that choice, and return to the proposal; this selection reuses Discover's selected-place state and does not modify preferences or ranking.
+7. If fewer than two compatible recommendations exist, comparison remains unavailable and explains how many alternatives are available. “Modificar preferencias” returns to the same controls with values preserved; this closes the comparison and clears its selection before a new proposal is generated.
 
 A successfully empty catalog and a non-empty catalog with no compatible places have distinct messages. Partial recommendations remain visible and identify data that could not be verified. No unavailable field is inferred.
 
@@ -38,4 +40,4 @@ All current places are fictional examples; budget and duration details are illus
 
 ## Tests
 
-`src/app/features/discover/map/map-markers.spec.ts` verifies coordinate validation and marker eligibility. `place-map.component.spec.ts` uses a fake adapter to check map/list boundary behavior, marker updates, synchronized selection, and initialization/tile error fallback without network access. `discover-page.component.spec.ts` verifies proposal generation, keyboard selection and the no-coordinate explanation. Recommendation rules remain covered in `src/app/core/domain/services/recommendation-engine.spec.ts`.
+`src/app/features/discover/application/plan-battle.spec.ts` checks that comparison uses the two leading engine recommendations, preserves their reasons/scores, retains partial status, reports ties honestly and handles insufficient results. `discover-page.component.spec.ts` verifies the comparison flow, changing a choice, preference invalidation and the single-alternative state. Map tests use a fake adapter and make no network requests; recommendation rules remain covered in `src/app/core/domain/services/recommendation-engine.spec.ts`.

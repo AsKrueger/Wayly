@@ -14,11 +14,18 @@ describe('DiscoverPageComponent', () => {
     jest.restoreAllMocks();
   });
 
-  async function loadDiscoverPage(): Promise<RouterTestingHarness> {
+  async function loadDiscoverPage(
+    places: readonly (typeof SAMPLE_PLACES[number])[] = SAMPLE_PLACES,
+  ): Promise<RouterTestingHarness> {
     await TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        { provide: PlaceCatalog, useClass: SamplePlaceCatalog },
+        {
+          provide: PlaceCatalog,
+          useValue: places === SAMPLE_PLACES
+            ? new SamplePlaceCatalog()
+            : { getAll: () => Promise.resolve(places) },
+        },
       ],
     });
 
@@ -199,6 +206,101 @@ describe('DiscoverPageComponent', () => {
     expect(selectedResult?.getAttribute('aria-pressed')).toBe('true');
     expect(selectedResult?.closest('.recommendation')
       ?.classList.contains('recommendation--selected')).toBe(true);
+  });
+
+  it('compares the two leading recommendations and lets the user change their choice', async () => {
+    const harness = await loadDiscoverPage();
+    const page = harness.routeNativeElement;
+    page?.querySelector<HTMLInputElement>('input[name="activityType"][value="culture"]')?.click();
+    harness.fixture.detectChanges();
+    generateProposal(harness);
+    page?.querySelector<HTMLButtonElement>('.recommendation__select')?.click();
+    harness.fixture.detectChanges();
+
+    page?.querySelector<HTMLButtonElement>('.plan-battle__entry button')?.click();
+    harness.fixture.detectChanges();
+
+    const options = page?.querySelectorAll<HTMLElement>('.plan-battle__option');
+    expect(page?.querySelectorAll('.plan-battle__choose[aria-pressed="true"]')).toHaveLength(0);
+    expect(options).toHaveLength(2);
+    expect(options?.[0].textContent).toContain('Jardín del Río');
+    expect(options?.[1].textContent).toContain('Café La Esquina');
+    expect(options?.[1].textContent).toContain('Ubicación');
+    expect(options?.[1].textContent).toContain('Sin datos');
+    expect(page?.querySelector('.plan-battle__affinity')?.textContent)
+      .toContain('afinidad orientativa según tus preferencias');
+
+    const chooseButtons = page?.querySelectorAll<HTMLButtonElement>('.plan-battle__choose');
+    chooseButtons?.[1].click();
+    harness.fixture.detectChanges();
+    expect(chooseButtons?.[1].getAttribute('aria-pressed')).toBe('true');
+    expect(page?.querySelector('.plan-battle__selection')?.textContent)
+      .toContain('Has elegido Café La Esquina');
+
+    chooseButtons?.[0].click();
+    harness.fixture.detectChanges();
+    expect(chooseButtons?.[0].getAttribute('aria-pressed')).toBe('true');
+    expect(chooseButtons?.[1].getAttribute('aria-pressed')).toBe('false');
+    expect(page?.querySelector('.plan-battle__selection')?.textContent)
+      .toContain('Has elegido Jardín del Río');
+
+    page?.querySelector<HTMLButtonElement>('.plan-battle > .button--secondary')?.click();
+    harness.fixture.detectChanges();
+    expect(page?.querySelector('.plan-battle')).toBeNull();
+    expect(page?.querySelector('#place-result-demo-river-garden')?.getAttribute('aria-pressed'))
+      .toBe('true');
+  });
+
+  it('does not open a comparison when only one compatible alternative is available', async () => {
+    const harness = await loadDiscoverPage([SAMPLE_PLACES[1]]);
+    generateProposal(harness);
+
+    const compareButton = harness.routeNativeElement
+      ?.querySelector<HTMLButtonElement>('.plan-battle__entry button');
+    expect(compareButton?.disabled).toBe(true);
+    expect(harness.routeNativeElement?.querySelector('.plan-battle__entry [role="status"]')?.textContent)
+      .toContain('Solo hay 1 alternativa compatible');
+    expect(harness.routeNativeElement?.querySelector('.plan-battle')).toBeNull();
+  });
+
+  it('reports an affinity tie without selecting a winner', async () => {
+    const tiePlaces = [
+      { ...SAMPLE_PLACES[1], id: 'tie-a', name: 'Opción A' },
+      { ...SAMPLE_PLACES[1], id: 'tie-b', name: 'Opción B' },
+    ];
+    const harness = await loadDiscoverPage(tiePlaces);
+    generateProposal(harness);
+    harness.routeNativeElement
+      ?.querySelector<HTMLButtonElement>('.plan-battle__entry button')?.click();
+    harness.fixture.detectChanges();
+
+    expect(harness.routeNativeElement?.querySelector('.plan-battle__affinity')?.textContent)
+      .toContain('misma afinidad orientativa');
+    expect(harness.routeNativeElement?.querySelector('.plan-battle__affinity')?.textContent)
+      .toContain('no establece una ganadora');
+    expect(harness.routeNativeElement?.querySelectorAll('[aria-pressed="true"]')).toHaveLength(0);
+  });
+
+  it('invalidates the selection and comparison when the user changes preferences', async () => {
+    const harness = await loadDiscoverPage();
+    const page = harness.routeNativeElement;
+    page?.querySelector<HTMLInputElement>('input[name="activityType"][value="culture"]')?.click();
+    harness.fixture.detectChanges();
+    generateProposal(harness);
+    page?.querySelector<HTMLButtonElement>('.plan-battle__entry button')?.click();
+    harness.fixture.detectChanges();
+    page?.querySelector<HTMLButtonElement>('.plan-battle__choose')?.click();
+    harness.fixture.detectChanges();
+    page?.querySelector<HTMLButtonElement>('.proposal-actions .button--secondary')?.click();
+    harness.fixture.detectChanges();
+
+    expect(page?.querySelector('.plan-battle')).toBeNull();
+    page?.querySelector<HTMLInputElement>('input[name="budget"][value="medium"]')?.click();
+    harness.fixture.detectChanges();
+    generateProposal(harness);
+
+    expect(page?.querySelector('.plan-battle')).toBeNull();
+    expect(page?.querySelector('.recommendation__select[aria-pressed="true"]')).toBeNull();
   });
 
   it('announces a catalog load failure instead of showing an empty success state', async () => {
