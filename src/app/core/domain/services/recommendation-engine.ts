@@ -26,6 +26,19 @@ export interface PlaceRecommendation {
   readonly place: Place;
   readonly reasons: readonly RecommendationReason[];
   readonly verification: 'complete' | 'partial';
+  readonly score: number;
+  readonly scoreBreakdown: RecommendationScoreBreakdown;
+}
+
+export interface RecommendationScoreCriterion {
+  readonly points: number;
+  readonly maximumPoints: number;
+  readonly status: 'scored' | 'unknown';
+}
+
+export interface RecommendationScoreBreakdown {
+  readonly budget: RecommendationScoreCriterion;
+  readonly duration: RecommendationScoreCriterion;
 }
 
 export interface RecommendationInput {
@@ -34,10 +47,15 @@ export interface RecommendationInput {
 }
 
 const BUDGET_RANK: Record<PlaceBudgetLevel, number> = {
-  economical: 0,
-  medium: 1,
-  flexible: 2,
+  economical: 1,
+  medium: 2,
+  flexible: 3,
 };
+
+const SCORE_WEIGHTS = {
+  budget: 50,
+  duration: 50,
+} as const;
 
 const AVAILABLE_MINUTES: Record<AvailableTime, number> = {
   'one-hour': 60,
@@ -100,12 +118,40 @@ export function recommendPlaces(input: RecommendationInput): readonly PlaceRecom
       reason.type === 'budget-unknown' || reason.type === 'duration-unknown',
     ) ? 'partial' : 'complete';
 
-    recommendations.push({ place, reasons, verification });
+    const scoreBreakdown: RecommendationScoreBreakdown = {
+      budget: place.budgetLevel
+        ? {
+            points: SCORE_WEIGHTS.budget
+              * (maximumBudgetRank - BUDGET_RANK[place.budgetLevel] + 1)
+              / maximumBudgetRank,
+            maximumPoints: SCORE_WEIGHTS.budget,
+            status: 'scored',
+          }
+        : {
+            points: 0,
+            maximumPoints: SCORE_WEIGHTS.budget,
+            status: 'unknown',
+          },
+      duration: place.estimatedVisitMinutes !== undefined
+        ? {
+            points: SCORE_WEIGHTS.duration * place.estimatedVisitMinutes / availableMinutes,
+            maximumPoints: SCORE_WEIGHTS.duration,
+            status: 'scored',
+          }
+        : {
+            points: 0,
+            maximumPoints: SCORE_WEIGHTS.duration,
+            status: 'unknown',
+          },
+    };
+    const score = scoreBreakdown.budget.points + scoreBreakdown.duration.points;
+
+    recommendations.push({ place, reasons, verification, score, scoreBreakdown });
   }
 
   return recommendations.sort((first, second) => {
-    if (first.verification !== second.verification) {
-      return first.verification === 'complete' ? -1 : 1;
+    if (first.score !== second.score) {
+      return second.score - first.score;
     }
 
     if (first.place.id < second.place.id) {

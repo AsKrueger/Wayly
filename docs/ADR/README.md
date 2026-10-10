@@ -9,5 +9,6 @@ The ADRs in this directory document the initial architectural decisions that sha
 - [ADR-0005 — Mobile-first Responsive Strategy](ADR-0005-Mobile-first-Responsive-Strategy.md)
 - [ADR-0006 — Initial Hosting Strategy](ADR-0006-Initial-Hosting-Strategy.md)
 - [ADR-0007 — Defer External Place Provider](ADR-0007-Defer-External-Place-Provider.md)
+- [ADR-0008 — Interactive Map Provider](ADR-0008-Interactive-Map-Provider.md)
 
 These ADRs represent real decisions that guide the roadmap and should be updated if project direction changes.

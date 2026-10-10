@@ -64,8 +64,14 @@ describe('recommendPlaces', () => {
   it('applies the selected budget as a maximum and retains unknown budgets as partial matches', () => {
     const results = recommendPlaces({
       places: [
-        place('economical', 'culture', { budgetLevel: 'economical' }),
-        place('medium', 'culture', { budgetLevel: 'medium' }),
+        place('economical', 'culture', {
+          budgetLevel: 'economical',
+          estimatedVisitMinutes: 120,
+        }),
+        place('medium', 'culture', {
+          budgetLevel: 'medium',
+          estimatedVisitMinutes: 120,
+        }),
         place('unknown'),
       ],
       preferences: DEFAULT_PREFERENCES,
@@ -96,6 +102,37 @@ describe('recommendPlaces', () => {
     expect(results.map((result) => result.place.id)).toEqual(['economical', 'medium']);
   });
 
+  it('scores budget efficiency with the documented fixed 50-point budget weight', () => {
+    const results = recommendPlaces({
+      places: [
+        place('economical', 'culture', {
+          budgetLevel: 'economical',
+          estimatedVisitMinutes: 120,
+        }),
+        place('medium', 'culture', {
+          budgetLevel: 'medium',
+          estimatedVisitMinutes: 120,
+        }),
+      ],
+      preferences: { ...DEFAULT_PREFERENCES, budget: 'medium' },
+    });
+
+    expect(results.map((result) => [result.place.id, result.score])).toEqual([
+      ['economical', 100],
+      ['medium', 75],
+    ]);
+    expect(results[0].scoreBreakdown.budget).toEqual({
+      points: 50,
+      maximumPoints: 50,
+      status: 'scored',
+    });
+    expect(results[0].scoreBreakdown.duration).toEqual({
+      points: 50,
+      maximumPoints: 50,
+      status: 'scored',
+    });
+  });
+
   it('keeps known durations within the available time and retains unknown durations as partial', () => {
     const results = recommendPlaces({
       places: [
@@ -116,6 +153,34 @@ describe('recommendPlaces', () => {
     expect(results[1].verification).toBe('partial');
   });
 
+  it('scores duration utilization up to the inclusive time limit', () => {
+    const results = recommendPlaces({
+      places: [
+        place('half-time', 'culture', {
+          budgetLevel: 'flexible',
+          estimatedVisitMinutes: 60,
+        }),
+        place('full-time', 'culture', {
+          budgetLevel: 'flexible',
+          estimatedVisitMinutes: 120,
+        }),
+        place('over-time', 'culture', {
+          budgetLevel: 'flexible',
+          estimatedVisitMinutes: 121,
+        }),
+      ],
+      preferences: { ...DEFAULT_PREFERENCES, budget: 'flexible' },
+    });
+
+    expect(results.map((result) => result.place.id)).toEqual(['full-time', 'half-time']);
+    expect(results[0].scoreBreakdown.duration).toEqual({
+      points: 50,
+      maximumPoints: 50,
+      status: 'scored',
+    });
+    expect(results[0].score).toBeCloseTo(66.6667);
+  });
+
   it('returns no results when every place is known to be incompatible', () => {
     const results = recommendPlaces({
       places: [
@@ -129,7 +194,7 @@ describe('recommendPlaces', () => {
     expect(results).toEqual([]);
   });
 
-  it('sorts complete results before partial results and breaks ties by stable ID', () => {
+  it('sorts by score before using stable ID as a tie-breaker without losing verification state', () => {
     const results = recommendPlaces({
       places: [
         place('z-partial'),
@@ -152,12 +217,39 @@ describe('recommendPlaces', () => {
       'a-partial',
       'z-partial',
     ]);
+    expect(results.map((result) => result.score)).toEqual([75, 62.5, 0, 0]);
     expect(results.map((result) => result.verification)).toEqual([
       'complete',
       'complete',
       'partial',
       'partial',
     ]);
+  });
+
+  it('does not award missing data more points or use a high score to restore an incompatible place', () => {
+    const results = recommendPlaces({
+      places: [
+        place('unknown', 'culture'),
+        place('over-budget', 'culture', {
+          budgetLevel: 'flexible',
+          estimatedVisitMinutes: 120,
+        }),
+        place('compatible', 'culture', {
+          budgetLevel: 'economical',
+          estimatedVisitMinutes: 120,
+        }),
+      ],
+      preferences: DEFAULT_PREFERENCES,
+    });
+
+    expect(results.map((result) => result.place.id)).toEqual(['compatible', 'unknown']);
+    expect(results[0].score).toBe(100);
+    expect(results[1].score).toBe(0);
+    expect(results[1].verification).toBe('partial');
+    expect(results[1].scoreBreakdown).toEqual({
+      budget: { points: 0, maximumPoints: 50, status: 'unknown' },
+      duration: { points: 0, maximumPoints: 50, status: 'unknown' },
+    });
   });
 
   it('produces equivalent results for repeated identical input', () => {

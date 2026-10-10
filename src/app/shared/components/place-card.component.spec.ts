@@ -60,4 +60,24 @@ describe('PlaceCardComponent', () => {
     expect(fixture.nativeElement.querySelector('.place-card__hours')).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('undefined');
   });
+
+  it.each([
+    ['unverified', 'Sin verificar'],
+    ['verified', 'Verificado · trusted-source'],
+  ] as const)('labels %s provenance explicitly', async (dataStatus, expectedLabel) => {
+    const place: Place = {
+      id: `place-${dataStatus}`,
+      name: 'Lugar con procedencia',
+      description: 'Ficha usada para comprobar la procedencia.',
+      category: 'culture',
+      source: dataStatus === 'verified' ? 'trusted-source' : 'unverified-source',
+      dataStatus,
+    };
+    const fixture = TestBed.createComponent(PlaceCardComponent);
+    fixture.componentRef.setInput('place', place);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain(expectedLabel);
+  });
 });

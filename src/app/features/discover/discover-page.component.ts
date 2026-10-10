@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AvailableTime, BudgetRange } from '../../core/domain/models/discover-preferences';
 import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../core/domain/models/place-category';
 import {
   PlaceRecommendation,
   RecommendationReason,
+  RecommendationScoreCriterion,
 } from '../../core/domain/services/recommendation-engine';
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
 import { DiscoverStore } from './state/discover-store.service';
+import { PlaceMapComponent } from './map/place-map.component';
+import { createPlanBattle, PlanBattleComparison } from './application/plan-battle';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -17,7 +20,7 @@ interface PreferenceOption<T extends string> {
 @Component({
   selector: 'app-discover-page',
   standalone: true,
-  imports: [PlaceCardComponent],
+  imports: [PlaceCardComponent, PlaceMapComponent],
   providers: [DiscoverStore],
   template: `
     <header class="discover-header">
@@ -39,8 +42,8 @@ interface PreferenceOption<T extends string> {
           <p class="eyebrow"><span aria-hidden="true"></span> DESCUBRE A TU MANERA</p>
           <h1 id="discover-title">¿Qué te apetece <span>hacer hoy?</span></h1>
           <p>
-            Elige el tipo de plan, el tiempo que tienes y tu presupuesto.
-            Empezamos con ideas sencillas, pensadas para ti.
+            Elige tus preferencias y genera una propuesta explicable con lugares
+            de ejemplo. Puedes volver y ajustarla cuando quieras.
           </p>
         </div>
         <aside class="discover-intro__aside" aria-label="Sobre los lugares mostrados">
@@ -53,7 +56,12 @@ interface PreferenceOption<T extends string> {
         </aside>
       </section>
 
-      <section class="discover-content page-container" aria-label="Preferencias y lugares">
+      <section
+        class="discover-content page-container"
+        [class.discover-content--results]="hasGenerated()"
+        aria-label="Preferencias y propuesta"
+      >
+        @if (!hasGenerated()) {
         <section class="preferences-panel surface-card" aria-labelledby="preferences-title">
           <div class="preferences-panel__heading">
             <div>
@@ -123,33 +131,8 @@ interface PreferenceOption<T extends string> {
             <span>{{ store.selectedPreferencesSummary() }}</span>
           </div>
 
-          <button class="button preferences-panel__action" type="button" (click)="continueWithPreferences()">
-            Confirmar preferencias
-            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </button>
-          <p class="action-status" role="status" aria-live="polite">
-            @if (hasContinued()) {
-              Estas recomendaciones corresponden a tus preferencias actuales. Cada lugar explica sus coincidencias y señala los datos que faltan.
-            }
-          </p>
-        </section>
-
-        <section class="places-section" aria-labelledby="places-title">
-          <div class="places-heading">
-            <div>
-              <span class="step-label">COINCIDENCIAS EXPLICABLES</span>
-              <h2 id="places-title">Recomendaciones para ti</h2>
-              <p>Se excluyen las incompatibilidades conocidas; los datos ausentes se conservan y se indican.</p>
-            </div>
-            @if (store.catalogState().kind === 'success') {
-              <span class="places-heading__count">Resultados: {{ store.resultCount() }}</span>
-            }
-          </div>
-
           @if (store.catalogState().kind === 'loading') {
-            <p class="empty-message" role="status">Cargando lugares de ejemplo…</p>
+            <p class="empty-message" role="status">Cargando lugares para preparar tu propuesta…</p>
           } @else if (store.catalogState().kind === 'error') {
             <div class="empty-message error-state" role="alert">
               <p>{{ store.catalogErrorMessage() }}</p>
@@ -159,17 +142,183 @@ interface PreferenceOption<T extends string> {
                 (click)="retryLoading()"
                 [disabled]="isRetrying()"
               >
-                {{ isRetrying() ? 'Reintentando…' : 'Reintentar' }}
+                {{ isRetrying() ? 'Reintentando…' : 'Reintentar carga' }}
               </button>
             </div>
-          } @else if (store.isCatalogEmpty()) {
+          }
+
+          <button
+            class="button preferences-panel__action"
+            type="button"
+            (click)="generateProposal()"
+            [disabled]="store.catalogState().kind !== 'success'"
+          >
+            Generar mi propuesta
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </section>
+        } @else {
+        <section class="places-section proposal-results surface-card" aria-labelledby="places-title">
+          <div class="places-heading">
+            <div>
+              <span class="step-label">TU PROPUESTA WAYLY</span>
+              <h2 id="places-title">Esto encaja contigo</h2>
+              <p class="proposal-preferences" aria-label="Preferencias utilizadas">
+                Según {{ store.selectedPreferencesSummary() }}. Las coincidencias y los datos pendientes se explican en cada resultado.
+              </p>
+            </div>
+            <span class="places-heading__count">Resultados: {{ store.resultCount() }}</span>
+          </div>
+
+          <p class="action-status proposal-status" role="status" aria-live="polite">
+            Propuesta generada localmente. La afinidad orienta la ordenación; no es una valoración objetiva del lugar.
+          </p>
+
+          @if (store.isCatalogEmpty()) {
             <p class="empty-message">Todavía no hay lugares disponibles.</p>
           } @else if (store.hasNoVisiblePlaces()) {
             <p class="empty-message">No hay lugares compatibles con estas preferencias según los datos disponibles. Prueba con otra opción.</p>
           } @else {
+            @if (!isPlanBattleOpen()) {
+              <div class="plan-battle__entry">
+                <button
+                  class="button button--secondary"
+                  type="button"
+                  [disabled]="planBattle().kind !== 'ready'"
+                  (click)="openPlanBattle()"
+                >
+                  Comparar dos opciones
+                </button>
+                @if (planBattle(); as comparison) {
+                  @if (comparison.kind === 'insufficient') {
+                    <p role="status">
+                      Solo hay {{ comparison.availableAlternatives }} alternativa compatible; se necesitan dos para comparar.
+                    </p>
+                  }
+                }
+              </div>
+            }
+            @if (isPlanBattleOpen()) {
+              @if (planBattle(); as comparison) {
+                @if (comparison.kind === 'ready') {
+                  <section id="plan-battle-panel" class="plan-battle" aria-labelledby="plan-battle-title">
+                    <div class="plan-battle__heading">
+                      <div>
+                        <span class="step-label">PLAN BATTLE</span>
+                        <h3 id="plan-battle-title">Compara tus dos opciones mejor posicionadas</h3>
+                        <p>Las alternativas proceden de la propuesta actual y respetan sus filtros de compatibilidad.</p>
+                      </div>
+                    </div>
+                    <p class="plan-battle__affinity" role="status">
+                      {{ planBattleAffinitySummary(comparison) }}
+                    </p>
+                    <div class="plan-battle__grid">
+                      @for (recommendation of comparison.alternatives; track recommendation.place.id) {
+                        <article class="plan-battle__option">
+                          <p class="recommendation__score">
+                            Afinidad orientativa: {{ planBattleScoreLabel(recommendation.score) }}/100
+                          </p>
+                          <p class="recommendation__score-breakdown">
+                            Presupuesto: {{ scoreCriterionLabel(recommendation.scoreBreakdown.budget) }} ·
+                            Tiempo: {{ scoreCriterionLabel(recommendation.scoreBreakdown.duration) }}
+                          </p>
+                          <div
+                            class="recommendation__verification"
+                            [class.recommendation__verification--partial]="recommendation.verification === 'partial'"
+                          >
+                            {{ verificationLabel(recommendation) }}
+                          </div>
+                          <app-place-card [place]="recommendation.place" />
+                          <dl class="plan-battle__details">
+                            <div>
+                              <dt>Ubicación</dt>
+                              <dd>{{ recommendation.place.location ?? 'Sin datos' }}</dd>
+                            </div>
+                            <div>
+                              <dt>Presupuesto</dt>
+                              <dd>
+                                {{ recommendation.place.budgetLevel
+                                  ? budgetLabel(recommendation.place.budgetLevel)
+                                  : 'Sin datos' }}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Duración estimada</dt>
+                              <dd>
+                                {{ recommendation.place.estimatedVisitMinutes !== undefined
+                                  ? recommendation.place.estimatedVisitMinutes + ' min'
+                                  : 'Sin datos' }}
+                              </dd>
+                            </div>
+                          </dl>
+                          <ul
+                            class="recommendation__reasons"
+                            [attr.aria-label]="'Motivos para ' + recommendation.place.name"
+                          >
+                            @for (reason of recommendation.reasons; track $index) {
+                              <li>{{ recommendationReasonLabel(reason) }}</li>
+                            }
+                          </ul>
+                          <button
+                            class="button plan-battle__choose"
+                            type="button"
+                            [attr.aria-pressed]="selectedPlaceId() === recommendation.place.id"
+                            (click)="selectPlanBattleAlternative(recommendation.place.id)"
+                          >
+                            {{ selectedPlaceId() === recommendation.place.id
+                              ? 'Opción elegida'
+                              : 'Elegir ' + recommendation.place.name }}
+                          </button>
+                        </article>
+                      }
+                    </div>
+                    @if (selectedPlanBattlePlaceName(); as selectedName) {
+                      <p class="plan-battle__selection" role="status" aria-live="polite">
+                        Has elegido {{ selectedName }}. Puedes cambiar tu elección cuando quieras.
+                      </p>
+                    }
+                    <p class="plan-battle__note">
+                      La afinidad refleja únicamente el ajuste según tus preferencias y los datos disponibles; no es una valoración objetiva.
+                      Los campos sin datos no se han estimado.
+                    </p>
+                    <button class="button button--secondary" type="button" (click)="closePlanBattle()">
+                      Volver a la propuesta
+                    </button>
+                  </section>
+                }
+              }
+            } @else {
+            <app-place-map
+              [places]="store.visiblePlaces()"
+              [selectedPlaceId]="selectedPlaceId()"
+              (placeSelected)="selectPlaceFromMap($event)"
+            />
             <div class="place-grid">
               @for (recommendation of store.recommendations(); track recommendation.place.id) {
-                <article class="recommendation">
+                <article
+                  class="recommendation"
+                  [class.recommendation--selected]="selectedPlaceId() === recommendation.place.id"
+                  (click)="selectPlace(recommendation.place.id)"
+                >
+                  <button
+                    class="recommendation__select"
+                    type="button"
+                    [attr.id]="'place-result-' + recommendation.place.id"
+                    [attr.aria-pressed]="selectedPlaceId() === recommendation.place.id"
+                    [attr.aria-label]="'Seleccionar lugar: ' + recommendation.place.name"
+                    (click)="selectPlace(recommendation.place.id)"
+                  >
+                    {{ selectedPlaceId() === recommendation.place.id ? 'Lugar seleccionado' : 'Seleccionar lugar' }}
+                  </button>
+                  <p class="recommendation__score">
+                    Afinidad orientativa: {{ scoreLabel(recommendation.score) }}/100
+                  </p>
+                  <p class="recommendation__score-breakdown">
+                    Presupuesto: {{ scoreCriterionLabel(recommendation.scoreBreakdown.budget) }} ·
+                    Tiempo: {{ scoreCriterionLabel(recommendation.scoreBreakdown.duration) }}
+                  </p>
                   <div
                     class="recommendation__verification"
                     [class.recommendation__verification--partial]="recommendation.verification === 'partial'"
@@ -188,12 +337,19 @@ interface PreferenceOption<T extends string> {
                 </article>
               }
             </div>
+            }
           }
           <p class="sample-note">
             <span aria-hidden="true">i</span>
             Las recomendaciones usan lugares ficticios. Presupuestos y duraciones son ilustrativos; una coincidencia no confirma información real del lugar.
           </p>
+          <div class="proposal-actions">
+            <button class="button button--secondary" type="button" (click)="editPreferences()">
+              Modificar preferencias
+            </button>
+          </div>
         </section>
+        }
       </section>
     </main>
 
@@ -232,27 +388,29 @@ export class DiscoverPageComponent {
     { value: 'flexible', label: 'Flexible', description: 'Tengo margen' },
   ];
 
-  readonly hasContinued = signal(false);
+  readonly hasGenerated = signal(false);
   readonly isRetrying = signal(false);
+  readonly selectedPlaceId = signal<string | null>(null);
+  readonly isPlanBattleOpen = signal(false);
+  readonly planBattle = computed(() => createPlanBattle(this.store.recommendations()));
 
   toggleActivityType(activityType: PlaceCategory): void {
     this.store.toggleActivityType(activityType);
-    this.hasContinued.set(false);
+    this.selectedPlaceId.set(null);
   }
 
   setAvailableTime(availableTime: AvailableTime): void {
     this.store.setAvailableTime(availableTime);
-    this.hasContinued.set(false);
+    this.selectedPlaceId.set(null);
   }
 
   setBudget(budget: BudgetRange): void {
     this.store.setBudget(budget);
-    this.hasContinued.set(false);
+    this.selectedPlaceId.set(null);
   }
 
   async retryLoading(): Promise<void> {
     this.isRetrying.set(true);
-    this.hasContinued.set(false);
     try {
       await this.store.retryLoading();
     } finally {
@@ -260,14 +418,89 @@ export class DiscoverPageComponent {
     }
   }
 
-  continueWithPreferences(): void {
-    this.hasContinued.set(true);
+  generateProposal(): void {
+    if (this.store.catalogState().kind === 'success') {
+      this.isPlanBattleOpen.set(false);
+      this.hasGenerated.set(true);
+    }
+  }
+
+  editPreferences(): void {
+    this.isPlanBattleOpen.set(false);
+    this.hasGenerated.set(false);
+    this.selectedPlaceId.set(null);
+  }
+
+  openPlanBattle(): void {
+    if (this.planBattle().kind === 'ready') {
+      this.selectedPlaceId.set(null);
+      this.isPlanBattleOpen.set(true);
+    }
+  }
+
+  closePlanBattle(): void {
+    this.isPlanBattleOpen.set(false);
+  }
+
+  selectPlanBattleAlternative(placeId: string): void {
+    this.selectedPlaceId.set(placeId);
+  }
+
+  selectedPlanBattlePlaceName(): string | null {
+    const selectedPlaceId = this.selectedPlaceId();
+    const comparison = this.planBattle();
+
+    return comparison.kind === 'ready'
+      ? comparison.alternatives.find(({ place }) => place.id === selectedPlaceId)?.place.name ?? null
+      : null;
+  }
+
+  planBattleAffinitySummary(comparison: PlanBattleComparison): string {
+    if (comparison.kind !== 'ready') {
+      return '';
+    }
+
+    if (comparison.affinity === 'tie') {
+      return 'Las dos opciones tienen la misma afinidad orientativa; el motor no establece una ganadora.';
+    }
+
+    const higher = comparison.affinity === 'first-higher'
+      ? comparison.alternatives[0]
+      : comparison.alternatives[1];
+    return `${higher.place.name} tiene ${this.planBattleScoreLabel(comparison.affinityDifference)} puntos más de afinidad orientativa según tus preferencias. Esto no determina cuál debes elegir.`;
+  }
+
+  planBattleScoreLabel(score: number): string {
+    return score.toFixed(2);
+  }
+
+  selectPlace(placeId: string): void {
+    this.selectedPlaceId.set(placeId);
+  }
+
+  selectPlaceFromMap(placeId: string): void {
+    this.selectPlace(placeId);
+    const result = document.getElementById(`place-result-${placeId}`);
+    result?.focus({ preventScroll: true });
+    result?.scrollIntoView?.({ block: 'nearest' });
   }
 
   verificationLabel(recommendation: PlaceRecommendation): string {
     return recommendation.verification === 'complete'
       ? 'Compatible según los datos disponibles'
       : 'Faltan datos para comprobar todo';
+  }
+
+  scoreLabel(score: number): number {
+    return Math.round(score);
+  }
+
+  scoreCriterionLabel(criterion: RecommendationScoreCriterion): string {
+    if (criterion.status === 'unknown') {
+      return `sin datos (0/${criterion.maximumPoints} puntos)`;
+    }
+
+    return `${Number(criterion.points.toFixed(1))}/${criterion.maximumPoints} puntos`;
   }
 
   recommendationReasonLabel(reason: RecommendationReason): string {
@@ -287,7 +520,7 @@ export class DiscoverPageComponent {
     }
   }
 
-  private budgetLabel(budget: BudgetRange): string {
+  budgetLabel(budget: BudgetRange): string {
     return {
       economical: 'económico',
       medium: 'medio',
