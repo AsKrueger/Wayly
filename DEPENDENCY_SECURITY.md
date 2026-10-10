@@ -104,9 +104,9 @@ build. CI is configured for Node.js 22.
 
 Wayly is a public repository, so GitHub code scanning with CodeQL is available
 for public repositories without an Advanced Security subscription. The
-workflow is configured, but the repository's code-scanning alert/settings
-status cannot be inspected through the available interface; confirm that
-results are appearing in the **Security** tab after a workflow run.
+CodeQL workflow ran successfully for PR #18 and uploaded analysis results.
+Code-scanning alerts and default-branch results should still be confirmed in
+the **Security** tab after merge.
 
 The 37 advisory IDs in the baseline are an explicit temporary exception for
 the findings observed on the review date. When resolving findings, update
