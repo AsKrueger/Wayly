@@ -39,6 +39,8 @@ npm run build
 
 También están disponibles `npm run test:watch` y `npm run test:coverage`.
 
+La estrategia, estructura y línea base medible de las pruebas están en [docs/TESTING.md](docs/TESTING.md).
+
 ## Estructura
 
 ```text

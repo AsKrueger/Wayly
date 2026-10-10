@@ -74,6 +74,23 @@ describe('createPlanBattle', () => {
     });
   });
 
+  it('describes the score direction accurately if recommendations arrive reversed', () => {
+    const recommendations = recommendPlaces({
+      places: [
+        place('higher-score', 'economical', 120),
+        place('lower-score', 'flexible', 60),
+      ],
+      preferences: PREFERENCES,
+    });
+
+    const comparison = createPlanBattle([...recommendations].reverse());
+
+    expect(comparison).toMatchObject({
+      kind: 'ready',
+      affinity: 'second-higher',
+    });
+  });
+
   it.each([0, 1])('explains when only %i compatible alternative(s) are available', (count) => {
     const recommendations = recommendPlaces({
       places: [place('only', 'economical', 60)].slice(0, count),

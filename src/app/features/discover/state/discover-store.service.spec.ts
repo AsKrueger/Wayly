@@ -38,7 +38,7 @@ describe('DiscoverStore', () => {
 
   it('loads catalog places and derives filtered results and count', async () => {
     const store = configureStore(() => Promise.resolve(SAMPLE_PLACES));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     expect(store.catalogState().kind).toBe('success');
     expect(store.visiblePlaces().map((place) => place.id)).toEqual([
@@ -51,7 +51,7 @@ describe('DiscoverStore', () => {
 
   it('updates multiple selected categories and shows all when none are selected', async () => {
     const store = configureStore(() => Promise.resolve(SAMPLE_PLACES));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     store.toggleActivityType('nature');
     expect(store.preferences().activityTypes).toEqual(['culture', 'nature']);
@@ -68,7 +68,7 @@ describe('DiscoverStore', () => {
 
   it('recomputes recommendations when budget and available time change', async () => {
     const store = configureStore(() => Promise.resolve(SAMPLE_PLACES));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     expect(store.visiblePlaces().map((place) => place.id)).toEqual([
       'demo-open-gallery',
@@ -87,7 +87,7 @@ describe('DiscoverStore', () => {
 
   it('distinguishes a successfully empty catalog from no matches after filtering', async () => {
     const emptyStore = configureStore(() => Promise.resolve([]));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     expect(emptyStore.catalogState()).toEqual({ kind: 'success', places: [] });
     expect(emptyStore.isCatalogEmpty()).toBe(true);
@@ -95,7 +95,7 @@ describe('DiscoverStore', () => {
 
     TestBed.resetTestingModule();
     const store = configureStore(() => Promise.resolve([SAMPLE_PLACES[0]]));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
     store.toggleActivityType('culture');
     store.toggleActivityType('nature');
 
@@ -111,7 +111,7 @@ describe('DiscoverStore', () => {
       .mockRejectedValueOnce(error)
       .mockResolvedValueOnce(SAMPLE_PLACES);
     const store = configureStore(getAll);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     expect(store.catalogState()).toEqual({
       kind: 'error',
@@ -136,7 +136,7 @@ describe('DiscoverStore', () => {
       ],
     });
     const store = TestBed.inject(DiscoverStore);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
 
     expect(store.catalogState().kind).toBe('success');
     expect(store.resultCount()).toBe(1);
