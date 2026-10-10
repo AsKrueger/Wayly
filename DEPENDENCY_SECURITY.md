@@ -68,9 +68,11 @@ safe.
 The checked-out source was scanned for common token and private-key patterns;
 no matches were found. This is not a complete secret scan and does not inspect
 repository history, ignored local files or GitHub-hosted secrets. The
-repository-level status of Dependabot alerts, secret scanning, push
-protection, private vulnerability reporting and branch protection could not
-be verified through the available repository interface.
+repository's Dependency graph and Dependabot alerts were initially disabled;
+both were enabled during PR validation with maintainer approval so Dependency
+Review could run. Dependabot security updates and private vulnerability
+reporting remain disabled; Secret Protection was not enabled. Push protection
+and branch-protection rules have not been verified.
 
 The initial audit discovery ran on Node.js 24.19.0/npm 11.17.0, outside the
 project's declared Node.js support range. Full local validation was subsequently

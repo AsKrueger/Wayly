@@ -22,7 +22,8 @@ branches or published production versions are currently maintained.
 
 The repository runs pinned GitHub Actions for CodeQL analysis, dependency
 review and the normal CI checks. Dependabot is configured for npm packages and
-GitHub Actions. These checks do not replace responsible disclosure or manual
-review. Availability and enforcement of repository-level GitHub security
-settings (including private reporting, secret scanning, push protection and
-branch protection) must be confirmed in the repository settings.
+GitHub Actions. The Dependency graph and Dependabot alerts are enabled;
+automatic security updates and private vulnerability reporting remain
+disabled. Secret Protection was not enabled, and push protection and branch
+protection have not been verified. These checks do not replace responsible
+disclosure or manual review.
