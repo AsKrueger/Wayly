@@ -435,6 +435,19 @@
   min-width: 0;
 }
 
+.recommendation__score {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: 750;
+}
+
+.recommendation__score-breakdown {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
 .recommendation__verification {
   margin-bottom: var(--space-2);
   color: var(--color-brand);

@@ -4,6 +4,7 @@ import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../core/domain/models/p
 import {
   PlaceRecommendation,
   RecommendationReason,
+  RecommendationScoreCriterion,
 } from '../../core/domain/services/recommendation-engine';
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
 import { DiscoverStore } from './state/discover-store.service';
@@ -170,6 +171,13 @@ interface PreferenceOption<T extends string> {
             <div class="place-grid">
               @for (recommendation of store.recommendations(); track recommendation.place.id) {
                 <article class="recommendation">
+                  <p class="recommendation__score">
+                    Afinidad orientativa: {{ scoreLabel(recommendation.score) }}/100
+                  </p>
+                  <p class="recommendation__score-breakdown">
+                    Presupuesto: {{ scoreCriterionLabel(recommendation.scoreBreakdown.budget) }} ·
+                    Tiempo: {{ scoreCriterionLabel(recommendation.scoreBreakdown.duration) }}
+                  </p>
                   <div
                     class="recommendation__verification"
                     [class.recommendation__verification--partial]="recommendation.verification === 'partial'"
@@ -268,6 +276,18 @@ export class DiscoverPageComponent {
     return recommendation.verification === 'complete'
       ? 'Compatible según los datos disponibles'
       : 'Faltan datos para comprobar todo';
+  }
+
+  scoreLabel(score: number): number {
+    return Math.round(score);
+  }
+
+  scoreCriterionLabel(criterion: RecommendationScoreCriterion): string {
+    if (criterion.status === 'unknown') {
+      return `sin datos (0/${criterion.maximumPoints} puntos)`;
+    }
+
+    return `${Number(criterion.points.toFixed(1))}/${criterion.maximumPoints} puntos`;
   }
 
   recommendationReasonLabel(reason: RecommendationReason): string {

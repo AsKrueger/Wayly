@@ -29,7 +29,8 @@ The `/` route lets a visitor choose activity categories, available time and budg
 - Changing a preference after continuing clears that status so it cannot imply the old selection is current.
 - Each fictional example is marked as such; descriptions and optional textual location come only from the local fixture. Illustrative budgets and durations are clearly labelled, and absent location, coordinates or hours are not inferred.
 - Catalog loading, failure, a successfully empty catalog, and no matching recommendations have distinct presentations. Errors can be retried; repeated requests cannot be triggered while the catalog is already loading.
-- The pure recommendation engine excludes known category, budget-ceiling, and duration incompatibilities; it retains missing budget/duration data as partial matches with visible explanations. Complete matches appear before partial matches, with stable IDs as the tie-breaker.
+- The pure recommendation engine excludes known category, budget-ceiling, and duration incompatibilities; it retains missing budget/duration data as partial matches with visible explanations.
+- Compatible recommendations are sorted by the engine's transparent 0–100 affinity score; Discover shows a rounded summary and each criterion's contribution, while retaining compatibility reasons and verification state. A partial result is not given a separate completeness bonus or penalty.
 - The external provider decision is documented in [ADR-0007](../ADR/ADR-0007-Defer-External-Place-Provider.md); Discover continues to use local fictional fixtures until a bounded location experience is defined.
 
 ## Tests

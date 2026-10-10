@@ -36,6 +36,9 @@ describe('DiscoverPageComponent', () => {
     expect(page?.querySelectorAll('app-place-card')).toHaveLength(1);
     expect(page?.textContent).toContain('Galería Patio Abierto');
     expect(page?.textContent).toContain('Resultados: 1');
+    expect(page?.textContent).toContain('Afinidad orientativa: 0/100');
+    expect(page?.textContent).toContain('Presupuesto: sin datos (0/50 puntos)');
+    expect(page?.textContent).toContain('Tiempo: sin datos (0/50 puntos)');
     expect(page?.textContent).toContain('Faltan datos para comprobar todo');
     expect(page?.textContent).toContain('No hay datos de presupuesto');
     expect(page?.textContent).toContain('No hay datos de duración');
@@ -84,6 +87,9 @@ describe('DiscoverPageComponent', () => {
     expect(page?.querySelector('.preferences-summary')?.textContent).toContain(
       'Cultura · Medio día · Presupuesto Flexible',
     );
+    expect(page?.textContent).toContain('Afinidad orientativa: 52/100');
+    expect(page?.textContent).toContain('Presupuesto: 33.3/50 puntos');
+    expect(page?.textContent).toContain('Tiempo: 18.8/50 puntos');
   });
 
   it('shows all categories when every category checkbox is cleared', async () => {
