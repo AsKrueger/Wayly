@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { PlaceCatalog } from '../../core/application/ports/place-catalog';
-import { AvailableTime, BudgetRange, DiscoverPreferences } from '../../core/domain/models/discover-preferences';
-import { Place } from '../../core/domain/models/place';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { AvailableTime, BudgetRange } from '../../core/domain/models/discover-preferences';
 import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../core/domain/models/place-category';
+import {
+  PlaceRecommendation,
+  RecommendationReason,
+} from '../../core/domain/services/recommendation-engine';
 import { PlaceCardComponent } from '../../shared/components/place-card.component';
+import { DiscoverStore } from './state/discover-store.service';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -15,6 +18,7 @@ interface PreferenceOption<T extends string> {
   selector: 'app-discover-page',
   standalone: true,
   imports: [PlaceCardComponent],
+  providers: [DiscoverStore],
   template: `
     <header class="discover-header">
       <div class="page-container discover-header__inner">
@@ -45,7 +49,7 @@ interface PreferenceOption<T extends string> {
               <path d="M12 3.5 14.6 9l5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8L12 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
             </svg>
           </span>
-          <span><strong>Ideas para inspirarte</strong><small>Los lugares son ejemplos locales, no resultados en tiempo real.</small></span>
+          <span><strong>Recomendaciones explicables</strong><small>Coincidencias locales según tus preferencias, no resultados en tiempo real.</small></span>
         </aside>
       </section>
 
@@ -63,13 +67,13 @@ interface PreferenceOption<T extends string> {
             <legend>¿Qué tipo de actividad te apetece?</legend>
             <div class="activity-options">
               @for (option of activityOptions; track option.value) {
-                <label class="activity-option" [class.activity-option--selected]="preferences().activityType === option.value">
+                <label class="activity-option" [class.activity-option--selected]="store.preferences().activityTypes.includes(option.value)">
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="activityType"
                     [value]="option.value"
-                    [checked]="preferences().activityType === option.value"
-                    (change)="setActivityType(option.value)"
+                    [checked]="store.preferences().activityTypes.includes(option.value)"
+                    (change)="toggleActivityType(option.value)"
                   />
                   <span class="activity-option__icon" aria-hidden="true">{{ option.icon }}</span>
                   <span class="activity-option__label">{{ option.label }}</span>
@@ -82,12 +86,12 @@ interface PreferenceOption<T extends string> {
             <legend>¿Cuánto tiempo tienes?</legend>
             <div class="choice-options">
               @for (option of timeOptions; track option.value) {
-                <label class="choice-option" [class.choice-option--selected]="preferences().availableTime === option.value">
+                <label class="choice-option" [class.choice-option--selected]="store.preferences().availableTime === option.value">
                   <input
                     type="radio"
                     name="availableTime"
                     [value]="option.value"
-                    [checked]="preferences().availableTime === option.value"
+                    [checked]="store.preferences().availableTime === option.value"
                     (change)="setAvailableTime(option.value)"
                   />
                   <span>{{ option.label }}</span>
@@ -100,12 +104,12 @@ interface PreferenceOption<T extends string> {
             <legend>¿Qué presupuesto prefieres?</legend>
             <div class="choice-options choice-options--budget">
               @for (option of budgetOptions; track option.value) {
-                <label class="choice-option choice-option--budget" [class.choice-option--selected]="preferences().budget === option.value">
+                <label class="choice-option choice-option--budget" [class.choice-option--selected]="store.preferences().budget === option.value">
                   <input
                     type="radio"
                     name="budget"
                     [value]="option.value"
-                    [checked]="preferences().budget === option.value"
+                    [checked]="store.preferences().budget === option.value"
                     (change)="setBudget(option.value)"
                   />
                   <span><strong>{{ option.label }}</strong><small>{{ option.description }}</small></span>
@@ -116,18 +120,18 @@ interface PreferenceOption<T extends string> {
 
           <div class="preferences-summary" aria-label="Preferencias seleccionadas">
             <span class="preferences-summary__check" aria-hidden="true">✓</span>
-            <span>{{ selectedPreferencesSummary() }}</span>
+            <span>{{ store.selectedPreferencesSummary() }}</span>
           </div>
 
           <button class="button preferences-panel__action" type="button" (click)="continueWithPreferences()">
-            Explorar con estas preferencias
+            Confirmar preferencias
             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
               <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </button>
           <p class="action-status" role="status" aria-live="polite">
             @if (hasContinued()) {
-              Tus preferencias están listas. Las recomendaciones personalizadas aún no están disponibles; los lugares mostrados son solo ejemplos.
+              Estas recomendaciones corresponden a tus preferencias actuales. Cada lugar explica sus coincidencias y señala los datos que faltan.
             }
           </p>
         </section>
@@ -135,29 +139,59 @@ interface PreferenceOption<T extends string> {
         <section class="places-section" aria-labelledby="places-title">
           <div class="places-heading">
             <div>
-              <span class="step-label">UNA PRIMERA INSPIRACIÓN</span>
-              <h2 id="places-title">Algunas ideas para empezar</h2>
-              <p>Una pequeña muestra para explorar posibilidades, no recomendaciones personalizadas.</p>
+              <span class="step-label">COINCIDENCIAS EXPLICABLES</span>
+              <h2 id="places-title">Recomendaciones para ti</h2>
+              <p>Se excluyen las incompatibilidades conocidas; los datos ausentes se conservan y se indican.</p>
             </div>
-            <span class="places-heading__count">{{ filteredPlaces().length }} ejemplos</span>
+            @if (store.catalogState().kind === 'success') {
+              <span class="places-heading__count">Resultados: {{ store.resultCount() }}</span>
+            }
           </div>
 
-          @if (placesError()) {
-            <p class="empty-message" role="alert">{{ placesError() }}</p>
-          } @else if (isLoadingPlaces()) {
+          @if (store.catalogState().kind === 'loading') {
             <p class="empty-message" role="status">Cargando lugares de ejemplo…</p>
+          } @else if (store.catalogState().kind === 'error') {
+            <div class="empty-message error-state" role="alert">
+              <p>{{ store.catalogErrorMessage() }}</p>
+              <button
+                class="button button--secondary"
+                type="button"
+                (click)="retryLoading()"
+                [disabled]="isRetrying()"
+              >
+                {{ isRetrying() ? 'Reintentando…' : 'Reintentar' }}
+              </button>
+            </div>
+          } @else if (store.isCatalogEmpty()) {
+            <p class="empty-message">Todavía no hay lugares disponibles.</p>
+          } @else if (store.hasNoVisiblePlaces()) {
+            <p class="empty-message">No hay lugares compatibles con estas preferencias según los datos disponibles. Prueba con otra opción.</p>
           } @else {
             <div class="place-grid">
-              @for (place of filteredPlaces(); track place.id) {
-                <app-place-card [place]="place" />
-              } @empty {
-                <p class="empty-message">No hay lugares de ejemplo para esta categoría todavía.</p>
+              @for (recommendation of store.recommendations(); track recommendation.place.id) {
+                <article class="recommendation">
+                  <div
+                    class="recommendation__verification"
+                    [class.recommendation__verification--partial]="recommendation.verification === 'partial'"
+                  >
+                    {{ verificationLabel(recommendation) }}
+                  </div>
+                  <app-place-card [place]="recommendation.place" />
+                  <ul
+                    class="recommendation__reasons"
+                    [attr.aria-label]="'Motivos para ' + recommendation.place.name"
+                  >
+                    @for (reason of recommendation.reasons; track $index) {
+                      <li>{{ recommendationReasonLabel(reason) }}</li>
+                    }
+                  </ul>
+                </article>
               }
             </div>
           }
           <p class="sample-note">
             <span aria-hidden="true">i</span>
-            Los lugares son ficticios. Presupuesto y duración, cuando aparecen, son datos ilustrativos; horarios y ubicación exacta no están disponibles.
+            Las recomendaciones usan lugares ficticios. Presupuestos y duraciones son ilustrativos; una coincidencia no confirma información real del lugar.
           </p>
         </section>
       </section>
@@ -177,8 +211,7 @@ interface PreferenceOption<T extends string> {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscoverPageComponent {
-  private readonly placeCatalog = inject(PlaceCatalog);
-  private readonly places = signal<readonly Place[]>([]);
+  readonly store = inject(DiscoverStore);
 
   readonly activityOptions: readonly (PreferenceOption<PlaceCategory> & { readonly icon: string })[] = [
     { value: 'culture', label: PLACE_CATEGORY_LABELS.culture, icon: '✳' },
@@ -199,60 +232,66 @@ export class DiscoverPageComponent {
     { value: 'flexible', label: 'Flexible', description: 'Tengo margen' },
   ];
 
-  readonly preferences = signal<DiscoverPreferences>({
-    activityType: 'culture',
-    availableTime: 'two-hours',
-    budget: 'economical',
-  });
   readonly hasContinued = signal(false);
-  readonly isLoadingPlaces = signal(true);
-  readonly placesError = signal<string | null>(null);
-  readonly filteredPlaces = computed(() =>
-    this.places().filter((place) => place.category === this.preferences().activityType),
-  );
-  readonly selectedPreferencesSummary = computed(() => {
-    const current = this.preferences();
-    const activity = this.activityOptions.find((option) => option.value === current.activityType)?.label;
-    const time = this.timeOptions.find((option) => option.value === current.availableTime)?.label;
-    const budget = this.budgetOptions.find((option) => option.value === current.budget)?.label;
+  readonly isRetrying = signal(false);
 
-    return `${activity} · ${time} · Presupuesto ${budget}`;
-  });
-
-  constructor() {
-    void this.loadPlaces();
-  }
-
-  private async loadPlaces(): Promise<void> {
-    this.isLoadingPlaces.set(true);
-    this.placesError.set(null);
-
-    try {
-      this.places.set(await this.placeCatalog.getAll());
-    } catch (error: unknown) {
-      console.error('Unable to load places for Discover.', error);
-      this.placesError.set('No se pudieron cargar los lugares de ejemplo. Inténtalo de nuevo más tarde.');
-    } finally {
-      this.isLoadingPlaces.set(false);
-    }
-  }
-
-  setActivityType(activityType: PlaceCategory): void {
-    this.preferences.update((current) => ({ ...current, activityType }));
+  toggleActivityType(activityType: PlaceCategory): void {
+    this.store.toggleActivityType(activityType);
     this.hasContinued.set(false);
   }
 
   setAvailableTime(availableTime: AvailableTime): void {
-    this.preferences.update((current) => ({ ...current, availableTime }));
+    this.store.setAvailableTime(availableTime);
     this.hasContinued.set(false);
   }
 
   setBudget(budget: BudgetRange): void {
-    this.preferences.update((current) => ({ ...current, budget }));
+    this.store.setBudget(budget);
     this.hasContinued.set(false);
+  }
+
+  async retryLoading(): Promise<void> {
+    this.isRetrying.set(true);
+    this.hasContinued.set(false);
+    try {
+      await this.store.retryLoading();
+    } finally {
+      this.isRetrying.set(false);
+    }
   }
 
   continueWithPreferences(): void {
     this.hasContinued.set(true);
+  }
+
+  verificationLabel(recommendation: PlaceRecommendation): string {
+    return recommendation.verification === 'complete'
+      ? 'Compatible según los datos disponibles'
+      : 'Faltan datos para comprobar todo';
+  }
+
+  recommendationReasonLabel(reason: RecommendationReason): string {
+    switch (reason.type) {
+      case 'category-match':
+        return `Coincide con la categoría ${PLACE_CATEGORY_LABELS[reason.category]}.`;
+      case 'category-unfiltered':
+        return 'No se aplicó un filtro de categoría.';
+      case 'budget-compatible':
+        return `Presupuesto ${this.budgetLabel(reason.placeLevel)} dentro de tu límite ${this.budgetLabel(reason.maximum)}.`;
+      case 'budget-unknown':
+        return 'No hay datos de presupuesto para comprobar esta preferencia.';
+      case 'duration-compatible':
+        return `Duración estimada de ${reason.estimatedMinutes} min dentro de tus ${reason.availableMinutes} min disponibles.`;
+      case 'duration-unknown':
+        return 'No hay datos de duración para comprobar esta preferencia.';
+    }
+  }
+
+  private budgetLabel(budget: BudgetRange): string {
+    return {
+      economical: 'económico',
+      medium: 'medio',
+      flexible: 'flexible',
+    }[budget];
   }
 }
