@@ -53,12 +53,16 @@ src/
 └── styles.css
 ```
 
-La estructura crecerá conforme se incorporen funcionalidades. Existen modelos mínimos para lugares y preferencias, pero todavía no se incluyen APIs, mapas, Firebase, autenticación ni lógica avanzada de recomendaciones.
+La estructura crecerá conforme se incorporen funcionalidades. Los modelos mínimos de lugares y preferencias están definidos, junto con un catálogo local intercambiable para datos de demostración. Todavía no se incluyen llamadas a APIs externas, mapas, Firebase, autenticación ni lógica avanzada de recomendaciones.
 
 ## Documentación del producto
 
 La definición inicial de producto y arquitectura está en [`docs/`](docs/).
 
 La pantalla Discover, sus datos de ejemplo y sus interacciones están descritos en [docs/DISCOVER.md](docs/DISCOVER.md).
+
+El modelo de lugares, el catálogo tipado y las fixtures están descritos en [docs/PLACE-MODEL.md](docs/PLACE-MODEL.md).
+
+La decisión de aplazar el proveedor externo hasta definir una búsqueda geográfica está en [ADR-0007](docs/ADR/ADR-0007-Defer-External-Place-Provider.md).
 
 La identidad visual, tokens y estados accesibles se describen en [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).
