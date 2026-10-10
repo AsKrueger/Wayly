@@ -28,11 +28,26 @@ describe('DiscoverPageComponent', () => {
     return harness;
   }
 
-  it('renders initial recommendations with explanations for incomplete data', async () => {
+  function generateProposal(harness: RouterTestingHarness): void {
+    harness.routeNativeElement
+      ?.querySelector<HTMLButtonElement>('.preferences-panel__action')
+      ?.click();
+    harness.fixture.detectChanges();
+  }
+
+  it('starts with pending preferences and generates an explained proposal on request', async () => {
     const harness = await loadDiscoverPage();
     const page = harness.routeNativeElement;
 
     expect(page?.querySelector('h1')?.textContent).toContain('¿Qué te apetece hacer hoy?');
+    expect(page?.querySelector('.preferences-panel__action')?.textContent)
+      .toContain('Generar mi propuesta');
+    expect(page?.querySelectorAll('input[type="checkbox"]')).toHaveLength(4);
+    expect(page?.querySelectorAll('input[type="radio"]')).toHaveLength(6);
+    expect(page?.querySelectorAll('app-place-card')).toHaveLength(0);
+
+    generateProposal(harness);
+
     expect(page?.querySelectorAll('app-place-card')).toHaveLength(1);
     expect(page?.textContent).toContain('Galería Patio Abierto');
     expect(page?.textContent).toContain('Resultados: 1');
@@ -42,8 +57,7 @@ describe('DiscoverPageComponent', () => {
     expect(page?.textContent).toContain('Faltan datos para comprobar todo');
     expect(page?.textContent).toContain('No hay datos de presupuesto');
     expect(page?.textContent).toContain('No hay datos de duración');
-    expect(page?.querySelectorAll('input[type="checkbox"]')).toHaveLength(4);
-    expect(page?.querySelectorAll('input[type="radio"]')).toHaveLength(6);
+    expect(page?.textContent).toContain('Propuesta generada localmente');
   });
 
   it('filters example places when the activity preference changes', async () => {
@@ -62,6 +76,10 @@ describe('DiscoverPageComponent', () => {
 
     expect(natureOption?.checked).toBe(true);
     expect(cultureOption?.checked).toBe(false);
+    expect(page?.querySelectorAll('app-place-card')).toHaveLength(0);
+
+    generateProposal(harness);
+
     expect(page?.querySelectorAll('app-place-card')).toHaveLength(2);
     expect(page?.textContent).toContain('Jardín del Río');
     expect(page?.textContent).toContain('Mirador de los Olmos');
@@ -87,6 +105,13 @@ describe('DiscoverPageComponent', () => {
     expect(page?.querySelector('.preferences-summary')?.textContent).toContain(
       'Cultura · Medio día · Presupuesto Flexible',
     );
+    expect(page?.querySelectorAll('app-place-card')).toHaveLength(0);
+
+    generateProposal(harness);
+
+    expect(page?.querySelector('.proposal-preferences')?.textContent).toContain(
+      'Cultura · Medio día · Presupuesto Flexible',
+    );
     expect(page?.textContent).toContain('Afinidad orientativa: 52/100');
     expect(page?.textContent).toContain('Presupuesto: 33.3/50 puntos');
     expect(page?.textContent).toContain('Tiempo: 18.8/50 puntos');
@@ -103,32 +128,42 @@ describe('DiscoverPageComponent', () => {
     harness.fixture.detectChanges();
 
     expect(cultureOption?.checked).toBe(false);
+    expect(page?.querySelector('.preferences-summary')?.textContent)
+      .toContain('Todas las categorías');
+    expect(page?.querySelectorAll('app-place-card')).toHaveLength(0);
+    generateProposal(harness);
     expect(page?.querySelectorAll('app-place-card')).toHaveLength(6);
-    expect(page?.querySelector('.preferences-summary')?.textContent).toContain('Todas las categorías');
+    expect(page?.querySelector('.proposal-preferences')?.textContent)
+      .toContain('Todas las categorías');
   });
 
-  it('announces that recommendations correspond to the confirmed preferences', async () => {
+  it('returns to preferences without losing them and regenerates the proposal', async () => {
     const harness = await loadDiscoverPage();
     const page = harness.routeNativeElement;
-    const continueButton = page?.querySelector<HTMLButtonElement>(
-      '.preferences-panel__action',
-    );
+    generateProposal(harness);
 
-    continueButton?.click();
+    page?.querySelector<HTMLButtonElement>('.proposal-actions .button--secondary')?.click();
     harness.fixture.detectChanges();
 
-    expect(page?.querySelector('[role="status"]')?.textContent).toContain(
-      'Estas recomendaciones corresponden a tus preferencias actuales',
-    );
+    expect(page?.querySelector('input[name="activityType"][value="culture"]')?.checked).toBe(true);
+    expect(page?.querySelector('app-place-card')).toBeNull();
 
     page?.querySelector<HTMLInputElement>(
       'input[name="activityType"][value="food"]',
     )?.click();
+    page?.querySelector<HTMLInputElement>(
+      'input[name="activityType"][value="culture"]',
+    )?.click();
     harness.fixture.detectChanges();
 
-    expect(page?.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
+    expect(page?.querySelector('.preferences-panel__action')?.textContent)
+      .toContain('Generar mi propuesta');
+    generateProposal(harness);
+
     expect(page?.textContent).toContain('Café La Esquina');
     expect(page?.textContent).not.toContain('Mercado de la Plaza');
+    expect(page?.querySelector('.proposal-preferences')?.textContent)
+      .toContain('Gastronomía · 2 horas · Presupuesto Económico');
   });
 
   it('announces a catalog load failure instead of showing an empty success state', async () => {
@@ -152,6 +187,8 @@ describe('DiscoverPageComponent', () => {
       'No se pudieron cargar los lugares',
     );
     expect(harness.routeNativeElement?.querySelectorAll('app-place-card')).toHaveLength(0);
+    expect(harness.routeNativeElement
+      ?.querySelector<HTMLButtonElement>('.preferences-panel__action')?.disabled).toBe(true);
     expect(consoleError).toHaveBeenCalledWith(
       'Unable to load places for Discover.',
       expect.any(Error),
@@ -184,6 +221,51 @@ describe('DiscoverPageComponent', () => {
 
     expect(getAll).toHaveBeenCalledTimes(2);
     expect(harness.routeNativeElement?.querySelector('[role="alert"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelectorAll('app-place-card')).toHaveLength(0);
+
+    generateProposal(harness);
+
     expect(harness.routeNativeElement?.querySelectorAll('app-place-card')).toHaveLength(1);
+  });
+
+  it('shows no compatible results separately from an empty catalog', async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        { provide: PlaceCatalog, useValue: { getAll: () => Promise.resolve([SAMPLE_PLACES[0]]) } },
+      ],
+    });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/', DiscoverPageComponent);
+    await harness.fixture.whenStable();
+    harness.fixture.detectChanges();
+
+    generateProposal(harness);
+
+    expect(harness.routeNativeElement?.querySelector('.empty-message')?.textContent)
+      .toContain('No hay lugares compatibles');
+    expect(harness.routeNativeElement?.querySelector('[role="alert"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelectorAll('app-place-card')).toHaveLength(0);
+  });
+
+  it('shows an empty catalog as a valid generated result state', async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        { provide: PlaceCatalog, useValue: { getAll: () => Promise.resolve([]) } },
+      ],
+    });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/', DiscoverPageComponent);
+    await harness.fixture.whenStable();
+    harness.fixture.detectChanges();
+
+    generateProposal(harness);
+
+    expect(harness.routeNativeElement?.querySelector('.empty-message')?.textContent)
+      .toContain('Todavía no hay lugares disponibles');
+    expect(harness.routeNativeElement?.querySelector('[role="alert"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('[role="status"]')?.textContent)
+      .toContain('Propuesta generada localmente');
   });
 });

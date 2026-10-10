@@ -40,8 +40,8 @@ interface PreferenceOption<T extends string> {
           <p class="eyebrow"><span aria-hidden="true"></span> DESCUBRE A TU MANERA</p>
           <h1 id="discover-title">¿Qué te apetece <span>hacer hoy?</span></h1>
           <p>
-            Elige el tipo de plan, el tiempo que tienes y tu presupuesto.
-            Empezamos con ideas sencillas, pensadas para ti.
+            Elige tus preferencias y genera una propuesta explicable con lugares
+            de ejemplo. Puedes volver y ajustarla cuando quieras.
           </p>
         </div>
         <aside class="discover-intro__aside" aria-label="Sobre los lugares mostrados">
@@ -54,7 +54,12 @@ interface PreferenceOption<T extends string> {
         </aside>
       </section>
 
-      <section class="discover-content page-container" aria-label="Preferencias y lugares">
+      <section
+        class="discover-content page-container"
+        [class.discover-content--results]="hasGenerated()"
+        aria-label="Preferencias y propuesta"
+      >
+        @if (!hasGenerated()) {
         <section class="preferences-panel surface-card" aria-labelledby="preferences-title">
           <div class="preferences-panel__heading">
             <div>
@@ -124,33 +129,8 @@ interface PreferenceOption<T extends string> {
             <span>{{ store.selectedPreferencesSummary() }}</span>
           </div>
 
-          <button class="button preferences-panel__action" type="button" (click)="continueWithPreferences()">
-            Confirmar preferencias
-            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </button>
-          <p class="action-status" role="status" aria-live="polite">
-            @if (hasContinued()) {
-              Estas recomendaciones corresponden a tus preferencias actuales. Cada lugar explica sus coincidencias y señala los datos que faltan.
-            }
-          </p>
-        </section>
-
-        <section class="places-section" aria-labelledby="places-title">
-          <div class="places-heading">
-            <div>
-              <span class="step-label">COINCIDENCIAS EXPLICABLES</span>
-              <h2 id="places-title">Recomendaciones para ti</h2>
-              <p>Se excluyen las incompatibilidades conocidas; los datos ausentes se conservan y se indican.</p>
-            </div>
-            @if (store.catalogState().kind === 'success') {
-              <span class="places-heading__count">Resultados: {{ store.resultCount() }}</span>
-            }
-          </div>
-
           @if (store.catalogState().kind === 'loading') {
-            <p class="empty-message" role="status">Cargando lugares de ejemplo…</p>
+            <p class="empty-message" role="status">Cargando lugares para preparar tu propuesta…</p>
           } @else if (store.catalogState().kind === 'error') {
             <div class="empty-message error-state" role="alert">
               <p>{{ store.catalogErrorMessage() }}</p>
@@ -160,10 +140,41 @@ interface PreferenceOption<T extends string> {
                 (click)="retryLoading()"
                 [disabled]="isRetrying()"
               >
-                {{ isRetrying() ? 'Reintentando…' : 'Reintentar' }}
+                {{ isRetrying() ? 'Reintentando…' : 'Reintentar carga' }}
               </button>
             </div>
-          } @else if (store.isCatalogEmpty()) {
+          }
+
+          <button
+            class="button preferences-panel__action"
+            type="button"
+            (click)="generateProposal()"
+            [disabled]="store.catalogState().kind !== 'success'"
+          >
+            Generar mi propuesta
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </section>
+        } @else {
+        <section class="places-section proposal-results surface-card" aria-labelledby="places-title">
+          <div class="places-heading">
+            <div>
+              <span class="step-label">TU PROPUESTA WAYLY</span>
+              <h2 id="places-title">Esto encaja contigo</h2>
+              <p class="proposal-preferences" aria-label="Preferencias utilizadas">
+                Según {{ store.selectedPreferencesSummary() }}. Las coincidencias y los datos pendientes se explican en cada resultado.
+              </p>
+            </div>
+            <span class="places-heading__count">Resultados: {{ store.resultCount() }}</span>
+          </div>
+
+          <p class="action-status proposal-status" role="status" aria-live="polite">
+            Propuesta generada localmente. La afinidad orienta la ordenación; no es una valoración objetiva del lugar.
+          </p>
+
+          @if (store.isCatalogEmpty()) {
             <p class="empty-message">Todavía no hay lugares disponibles.</p>
           } @else if (store.hasNoVisiblePlaces()) {
             <p class="empty-message">No hay lugares compatibles con estas preferencias según los datos disponibles. Prueba con otra opción.</p>
@@ -201,7 +212,13 @@ interface PreferenceOption<T extends string> {
             <span aria-hidden="true">i</span>
             Las recomendaciones usan lugares ficticios. Presupuestos y duraciones son ilustrativos; una coincidencia no confirma información real del lugar.
           </p>
+          <div class="proposal-actions">
+            <button class="button button--secondary" type="button" (click)="editPreferences()">
+              Modificar preferencias
+            </button>
+          </div>
         </section>
+        }
       </section>
     </main>
 
@@ -240,27 +257,23 @@ export class DiscoverPageComponent {
     { value: 'flexible', label: 'Flexible', description: 'Tengo margen' },
   ];
 
-  readonly hasContinued = signal(false);
+  readonly hasGenerated = signal(false);
   readonly isRetrying = signal(false);
 
   toggleActivityType(activityType: PlaceCategory): void {
     this.store.toggleActivityType(activityType);
-    this.hasContinued.set(false);
   }
 
   setAvailableTime(availableTime: AvailableTime): void {
     this.store.setAvailableTime(availableTime);
-    this.hasContinued.set(false);
   }
 
   setBudget(budget: BudgetRange): void {
     this.store.setBudget(budget);
-    this.hasContinued.set(false);
   }
 
   async retryLoading(): Promise<void> {
     this.isRetrying.set(true);
-    this.hasContinued.set(false);
     try {
       await this.store.retryLoading();
     } finally {
@@ -268,8 +281,14 @@ export class DiscoverPageComponent {
     }
   }
 
-  continueWithPreferences(): void {
-    this.hasContinued.set(true);
+  generateProposal(): void {
+    if (this.store.catalogState().kind === 'success') {
+      this.hasGenerated.set(true);
+    }
+  }
+
+  editPreferences(): void {
+    this.hasGenerated.set(false);
   }
 
   verificationLabel(recommendation: PlaceRecommendation): string {
