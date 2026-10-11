@@ -8,7 +8,8 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint . --ext .ts,.html"
+    "lint": "eslint . --ext .ts,.html",
+    "security:audit": "node scripts/check-npm-audit.cjs"
   },
   "private": true,
   "dependencies": {
