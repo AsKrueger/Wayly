@@ -42,7 +42,7 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 
 ### Excepciones heredadas
 
-- La rama `security/issue-14-hardening` y los commits anteriores a esta roadmap no siguen la convención. No se reescribe la historia; la convención se aplica desde ahora.
+- La rama `security/issue-14-hardening`, ya fusionada en `develop` y eliminada, y los commits anteriores a esta roadmap no siguen la convención. No se reescribe la historia; la convención se aplica desde ahora.
 - `develop` ya existía antes de esta roadmap.
 
 ## Fases
@@ -54,7 +54,7 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
 | F0-1 | #15 | Flujo de trabajo y roadmap | `docs/ROADMAP.md`, `CONTRIBUTING.md` y plantilla de PR de cierre de fase |
-| F0-2 | | Seguridad de la cadena de suministro | Acciones fijadas por SHA, CodeQL, Dependabot hacia `develop`, gate de `npm audit` y política de línea base. Se resuelve fusionando la PR #18 con sus cambios finales |
+| F0-2 | | Ajustes finales de seguridad | `target-branch: develop` y exclusión temporal de versiones mayores en Dependabot, runner fijado a una versión concreta, explicación de 67 paquetes frente a 37 avisos y política de línea base aprobada en `DEPENDENCY_SECURITY.md` |
 | F0-3 | | Protección de ramas | Checks requeridos en `main` y `develop`, y ajustes gratuitos de Code security |
 
 **Salida:** `develop` y `main` protegidas, CI, CodeQL y Dependency Review en verde, y flujo documentado.
@@ -150,10 +150,6 @@ Solo si sigue siendo gratis:
 - Proveedores de lugares de pago.
 - Backend propio, autenticación y base de datos.
 - Funciones de GitHub que requieran plan de pago.
-
-## Pendiente de confirmar
-
-- Destino de las issues #14 y #14.1 en GitHub. Propuesta: cerrarlas enlazando a F0-2 para conservar la revisión ya hecha.
 
 ## Registro de reevaluaciones
 
