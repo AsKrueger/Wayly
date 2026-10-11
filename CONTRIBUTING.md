@@ -60,4 +60,4 @@ GitHub solo lee las plantillas de la rama por defecto, que es `main`. Hasta que 
 - Los commits anteriores a estas reglas no siguen el formato. No se reescribe el historial.
 - La rama `security/issue-14-hardening`, ya fusionada en `develop` y eliminada, no sigue la convención de nombres.
 - `develop` ya existía antes de estas reglas.
-- Dependabot abre todavía sus PR contra `main`. Se redirige a `develop` en la F0-2.
+- Dependabot está configurado para abrir sus PR contra `develop`, pero GitHub lee `dependabot.yml` de la rama por defecto, que es `main`. Hasta que el cierre de la fase 0 lleve esa configuración a `main`, sus PR siguen abriéndose contra `main`.
