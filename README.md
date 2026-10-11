@@ -58,6 +58,10 @@ src/
 
 La estructura crecerá conforme se incorporen funcionalidades. Los modelos de lugares y preferencias están definidos, junto con un catálogo local intercambiable. No se incluyen proveedores externos de lugares, geolocalización, Firebase ni autenticación.
 
+## Flujo de trabajo y roadmap
+
+Las fases, las issues previstas y el principio de coste cero están en [docs/ROADMAP.md](docs/ROADMAP.md). Las reglas de ramas, commits y cierre de fase están en [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Documentación del producto
 
 La definición inicial de producto y arquitectura está en [`docs/`](docs/).
