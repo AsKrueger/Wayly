@@ -19,7 +19,6 @@ interface PreferenceOption<T extends string> {
 
 @Component({
   selector: 'app-discover-page',
-  standalone: true,
   imports: [PlaceCardComponent, PlaceMapComponent],
   providers: [DiscoverStore],
   template: `
