@@ -6,7 +6,7 @@
 
 ## Punto de partida
 
-`docs/PRODUCT.md` define un MVP de 15 puntos: planes con varios lugares, distancia, edición del plan y mapa sincronizado. Hoy Wayly es un recomendador de lugares sueltos sobre 8 fixtures ficticias, sin coordenadas, sin backend y sobre Angular 18, que ya no recibe parches. Esta roadmap cierra esa distancia por orden de dependencias.
+`docs/PRODUCT.md` define un MVP de 15 puntos: planes con varios lugares, distancia, edición del plan y mapa sincronizado. Hoy Wayly es un recomendador de lugares sueltos sobre 8 fixtures ficticias, sin coordenadas, sin backend. Partía de Angular 18, que ya no recibe parches; la F1-1 lo llevó a Angular 20. Esta roadmap cierra esa distancia por orden de dependencias.
 
 La roadmap se estructura desde cero. El código existente se mantiene; el trabajo de seguridad ya hecho se integra como una issue más de la fase 0.
 
@@ -65,10 +65,11 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F1-1 | | Migración de Angular | A una versión mayor con soporte, de mayor en mayor |
+| F1-1 | #18 | Migración de Angular | De la 18 a la 20, de mayor en mayor. Se detiene en la 20 porque la 21 exige Jest 30 (F1-2) |
 | F1-2 | | Migración de herramientas | Entorno de pruebas, ESLint y TypeScript |
 | F1-3 | | Vaciado de la línea base | Eliminar entradas resueltas y retirar la exclusión de versiones mayores en Dependabot |
 | F1-4 | | Endurecimiento menor | CSP en `src/index.html`, CI sin ejecución doble y pruebas de las rutas de error del gate |
+| F1-5 | | Migración de Angular a la 22 | Saltos 20 → 21 → 22. Va después de la F1-2 y antes de la F1-3; el LTS de Angular 20 termina el 2026-11-28 |
 
 **Salida:** cero avisos altos o críticos en dependencias de producción y línea base vacía o casi vacía.
 
