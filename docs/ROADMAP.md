@@ -55,7 +55,7 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 | --- | --- | --- | --- |
 | F0-1 | #15 | Flujo de trabajo y roadmap | `docs/ROADMAP.md`, `CONTRIBUTING.md` y plantilla de PR de cierre de fase |
 | F0-2 | #16 | Ajustes finales de seguridad | `target-branch: develop` y exclusión temporal de versiones mayores en Dependabot, runner fijado a una versión concreta, explicación de 67 paquetes frente a 37 avisos y política de línea base aprobada en `DEPENDENCY_SECURITY.md` |
-| F0-3 | | Protección de ramas | Checks requeridos en `main` y `develop`, y ajustes gratuitos de Code security |
+| F0-3 | #17 | Protección de ramas | Checks requeridos en `main` y `develop`, y ajustes gratuitos de Code security |
 
 **Salida:** `develop` y `main` protegidas, CI, CodeQL y Dependency Review en verde, y flujo documentado.
 
