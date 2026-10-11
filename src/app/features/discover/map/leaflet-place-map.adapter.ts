@@ -18,6 +18,8 @@ export class LeafletPlaceMapAdapter extends PlaceMapAdapter {
   private selectedPlaceId: string | null = null;
   private hasReportedTileError = false;
 
+  // Constructor injection lets the spec build the adapter without TestBed.
+  // eslint-disable-next-line @angular-eslint/prefer-inject
   constructor(private readonly zone: NgZone) {
     super();
   }
