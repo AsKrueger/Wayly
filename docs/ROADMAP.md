@@ -65,8 +65,8 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F1-1 | #18 | Migración de Angular | De la 18 a la 20, de mayor en mayor. Se detiene en la 20 porque la 21 exige Jest 30 (F1-2) |
-| F1-2 | | Migración de herramientas | Entorno de pruebas, ESLint y TypeScript |
+| F1-1 | #18 | Migración de Angular | De la 18 a la 20, de mayor en mayor. Se detiene en la 20 porque la 21 exigía Jest 30 (F1-2) |
+| F1-2 | #19 | Migración de herramientas | Jest 30 y ESLint 9 con configuración plana. TypeScript se queda en la 5.9 hasta la F1-5 |
 | F1-3 | | Vaciado de la línea base | Eliminar entradas resueltas y retirar la exclusión de versiones mayores en Dependabot |
 | F1-4 | | Endurecimiento menor | CSP en `src/index.html`, CI sin ejecución doble y pruebas de las rutas de error del gate |
 | F1-5 | | Migración de Angular a la 22 | Saltos 20 → 21 → 22. Va después de la F1-2 y antes de la F1-3; el LTS de Angular 20 termina el 2026-11-28 |
