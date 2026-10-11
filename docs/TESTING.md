@@ -54,7 +54,7 @@ From Command Prompt or a PowerShell environment where npm scripts are enabled, t
 
 ## Test organization and purpose
 
-Jest 29 with `jest-preset-angular` runs `src/**/*.spec.ts` using the `tsconfig.spec.json` CommonJS test configuration and `setup-jest.ts`. The same runner also executes `scripts/**/*.spec.cjs`, including regression tests for the dependency-advisory baseline gate. Production TypeScript remains strict through `tsconfig.json`; ESLint checks TypeScript and Angular templates.
+Jest 30 with `jest-preset-angular` 16 runs `src/**/*.spec.ts` using the `tsconfig.spec.json` CommonJS test configuration and `setup-jest.ts`. The same runner also executes `scripts/**/*.spec.cjs`, including regression tests for the dependency-advisory baseline gate. Production TypeScript remains strict through `tsconfig.json`; ESLint 9 checks TypeScript and Angular templates through the flat configuration in `eslint.config.js`; JavaScript files (scripts and tool configuration) are outside its scope.
 
 - `src/app/core/domain/services/`: framework-independent recommendation compatibility, score criteria and stable ordering.
 - `src/app/features/discover/application/`: comparison projection from existing recommendation results; no Angular dependency.
@@ -96,6 +96,8 @@ After explicitly collecting all source files, adding focused entry-point and Lea
 | Plan Battle projection | 100% | 100% | 100% | 100% |
 | Discover map area | 98.60% | 92.10% | 100% | 98.52% |
 | Leaflet adapter | 100% | 100% | 100% | 100% |
+
+The table was measured with Jest 29. With Jest 30 the same tests and source report **91.91% branches** for all collected source, because branches are counted differently; statements, functions and lines are unchanged.
 
 These values are a snapshot, not a quality target; rerun the command to get the current result. Remaining uncovered lines/branches are defensive or degenerate paths (for example equal duplicate recommendation IDs, no-map component guards, the store's non-error retry guard and an absent-budget display fallback). They should only gain tests if their contract or risk warrants it.
 

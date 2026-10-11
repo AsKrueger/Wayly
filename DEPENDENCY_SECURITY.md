@@ -3,16 +3,20 @@
 ## Current baseline
 
 The figures below were recorded on **2026-10-11**, after the migration from
-Angular 18 to Angular 20 (issue #18), from the committed `package-lock.json`
-using `npm audit`:
+Angular 18 to Angular 20 (issue #18) and of Jest and ESLint (issue #19), from
+the committed `package-lock.json` using `npm audit`:
 
 | Scope | Critical | High | Moderate | Low | Total |
 |---|---:|---:|---:|---:|---:|
-| All installed dependencies | 0 | 38 | 7 | 0 | 45 |
+| All installed dependencies | 0 | 9 | 23 | 0 | 32 |
 | Production dependencies (`npm audit --omit=dev`) | 0 | 0 | 0 | 0 | 0 |
 
 For comparison, the review of 2026-10-10 on Angular 18 reported 95 affected
-packages in total (2 critical, 65 high) and 8 in production (4 high).
+packages in total (2 critical, 65 high) and 8 in production (4 high). After
+issue #18 alone the total was 45 (38 high). The moderate count rose from 7 to
+23 with issue #19: most of those entries are Jest 30 packages reported because
+they depend on `sprintf-js`, which has a moderate advisory. The gate only
+tracks high and critical advisories.
 
 The production audit is clean: the Angular 20 runtime packages carry no known
 advisory. Every remaining finding is in the development and build dependency
@@ -26,14 +30,14 @@ numbers are not expected to match:
 
 | Scope | Packages with high/critical findings | Unique high/critical advisories |
 |---|---:|---:|
-| All installed dependencies | 38 | 2 |
+| All installed dependencies | 9 | 2 |
 | Production dependencies | 0 | 0 |
 
 One advisory can affect several packages, and a package is also counted when it
-only depends on a vulnerable package. Only 2 of the 38 packages are named
-directly by an advisory (`braces` and `webpack-dev-middleware`); the other 36,
-including the Jest and Angular build packages, are reported because they depend
-on one of those two.
+only depends on a vulnerable package. Only 2 of the 9 packages are named
+directly by an advisory (`braces` and `webpack-dev-middleware`); the other 7,
+all of them Angular build and development-server packages, are reported because
+they depend on one of those two.
 
 `security/npm-audit-baseline.json` holds those 2 advisory IDs. The gate
 compares advisory IDs, not package counts.
@@ -46,11 +50,10 @@ compares advisory IDs, not package counts.
 | GHSA-g84c-rxfj-3j2c | `webpack-dev-middleware` | Development and build | `@angular-devkit/build-angular` 21 |
 
 `npm audit` offers no fix for either within Angular 20: both require the
-Angular 21 build packages. Angular 21 in turn needs Jest 30, because
-`jest-preset-angular` 14 supports Angular up to version 20 only. The exit
-condition for both entries is therefore the Angular 22 migration (F1-5 in
-[`docs/ROADMAP.md`](docs/ROADMAP.md)), which follows the tooling migration
-(F1-2).
+Angular 21 build packages. Issue #19 (F1-2) removed the tooling blocker by
+moving to Jest 30 and `jest-preset-angular` 16, which supports Angular 19 to
+22. The exit condition for both entries is the Angular 22 migration (F1-5 in
+[`docs/ROADMAP.md`](docs/ROADMAP.md)).
 
 Do not use `npm audit fix --force` as a routine remediation. Keep the baseline
 limited to reviewed, still-present GHSA IDs: the audit gate fails on new

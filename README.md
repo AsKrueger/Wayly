@@ -9,8 +9,8 @@ Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona
 - Angular 20 con Standalone Components y Angular Router
 - TypeScript strict
 - Leaflet para mapas interactivos opcionales
-- Jest y Angular Testing Utilities
-- ESLint
+- Jest 30 y Angular Testing Utilities
+- ESLint 9 con configuración plana (`eslint.config.js`)
 - npm
 
 ## Requisitos
