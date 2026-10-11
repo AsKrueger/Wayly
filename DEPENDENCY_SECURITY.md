@@ -2,24 +2,22 @@
 
 ## Current baseline
 
-The dependency review below was recorded on **2026-10-10** from the committed
-`package-lock.json` using `npm audit`:
+The figures below were recorded on **2026-10-11**, after the migration from
+Angular 18 to Angular 20 (issue #18), from the committed `package-lock.json`
+using `npm audit`:
 
 | Scope | Critical | High | Moderate | Low | Total |
 |---|---:|---:|---:|---:|---:|
-| All installed dependencies | 2 | 65 | 21 | 7 | 95 |
-| Production dependencies (`npm audit --omit=dev`) | 0 | 4 | 4 | 0 | 8 |
+| All installed dependencies | 0 | 38 | 7 | 0 | 45 |
+| Production dependencies (`npm audit --omit=dev`) | 0 | 0 | 0 | 0 | 0 |
 
-High/critical advisories affect Angular packages and development tooling,
-including `@angular-devkit/build-angular`, `@angular/cli`, `@angular/common`,
-`@angular/compiler`, `@angular/core`, `@angular/router`, Jest, and
-`jest-preset-angular`. The two critical transitive packages reported at the
-time were `piscina` and `tar`; both are in the development/build dependency
-tree. The production-only audit still reports four affected high-severity
-package entries and four moderate entries. The high-severity production
-packages are `@angular/common`, `@angular/compiler`, `@angular/core` and
-`@angular/router`. Treat these as unresolved risks, not as vulnerabilities
-that have been fixed or proven unexploitable.
+For comparison, the review of 2026-10-10 on Angular 18 reported 95 affected
+packages in total (2 critical, 65 high) and 8 in production (4 high).
+
+The production audit is clean: the Angular 20 runtime packages carry no known
+advisory. Every remaining finding is in the development and build dependency
+tree. Treat them as unresolved risks, not as vulnerabilities that have been
+fixed or proven unexploitable.
 
 ### Packages and advisories are counted differently
 
@@ -28,59 +26,35 @@ numbers are not expected to match:
 
 | Scope | Packages with high/critical findings | Unique high/critical advisories |
 |---|---:|---:|
-| All installed dependencies | 67 (2 critical + 65 high) | 37 |
-| Production dependencies | 4 | 13 |
+| All installed dependencies | 38 | 2 |
+| Production dependencies | 0 | 0 |
 
-- One advisory can affect several packages, and a package is also counted when
-  it only depends on a vulnerable package. That is why 37 advisories produce 67
-  affected packages: 19 of the 67 are named directly by an advisory and the
-  other 48 are reported only because they depend on one of those.
-- One package can carry several advisories. In production, `@angular/common`
-  has 6, `@angular/core` 5, `@angular/compiler` 4 and `@angular/router` 1. That
-  adds up to 16 because some advisories are reported for more than one package;
-  there are 13 distinct ones.
+One advisory can affect several packages, and a package is also counted when it
+only depends on a vulnerable package. Only 2 of the 38 packages are named
+directly by an advisory (`braces` and `webpack-dev-middleware`); the other 36,
+including the Jest and Angular build packages, are reported because they depend
+on one of those two.
 
-The 13 production advisories are part of the 37, and
-`security/npm-audit-baseline.json` holds those 37 advisory IDs. The gate
+`security/npm-audit-baseline.json` holds those 2 advisory IDs. The gate
 compares advisory IDs, not package counts.
-
-`npm audit fix --dry-run` proposed no compatible automatic changes. The
-available fixes for the affected direct Angular and Jest dependencies require
-major upgrades beyond this project's Angular 18/Jest 29 foundation. Do not use
-`npm audit fix --force` as a routine remediation. Review each advisory's
-affected path and compatibility before changing versions; update the baseline
-when findings are actually resolved.
-
-The maintainer chose to preserve Angular 18 for this hardening change rather
-than undertake the major Angular/Jest migration required to clear the current
-audit findings. The baseline is therefore an explicit, temporary risk
-acceptance—not a claim that the advisories are fixed. Revisit it when compatible
-patches become available or when a separately planned framework upgrade is
-approved.
 
 ## Exception and remediation plan
 
-The maintainer accepts the documented baseline temporarily to avoid an
-unreviewed framework migration in this change. The production Angular findings
-remain a release risk; the absence of a source-review finding does not establish
-that the vulnerable framework code is unreachable or harmless.
+| Advisory | Package | Scope | Fix |
+|---|---|---|---|
+| GHSA-vfj7-8cjw-p6xm | `braces` | Development and build | `@angular-devkit/build-angular` 21 |
+| GHSA-g84c-rxfj-3j2c | `webpack-dev-middleware` | Development and build | `@angular-devkit/build-angular` 21 |
 
-1. Before the next production release, review the current Angular advisories
-   and affected code paths against the application's actual use of Angular
-   templates, routing and browser APIs. Do not treat that reachability review
-   as a replacement for upgrading.
-2. Plan a coordinated upgrade to a supported, patched Angular major, including
-   Angular framework/CLI/build packages and the aligned compiler, router and
-   platform packages. Upgrade Jest and `jest-preset-angular` as required by
-   Angular compatibility. Run the full Windows and CI validation before
-   removing resolved GHSA IDs.
-3. Resolve the build-tree `tar` and `piscina` findings as part of that
-   dependency-tree update, or sooner if a compatible upstream fix becomes
-   available. Re-run both full and production-only audits after each update.
-4. Keep the baseline limited to reviewed, still-present GHSA IDs. The audit
-   gate fails on new high/critical findings and stale exceptions; do not add
-   IDs without documenting their package path, severity, production/build
-   scope and remediation decision.
+`npm audit` offers no fix for either within Angular 20: both require the
+Angular 21 build packages. Angular 21 in turn needs Jest 30, because
+`jest-preset-angular` 14 supports Angular up to version 20 only. The exit
+condition for both entries is therefore the Angular 22 migration (F1-5 in
+[`docs/ROADMAP.md`](docs/ROADMAP.md)), which follows the tooling migration
+(F1-2).
+
+Do not use `npm audit fix --force` as a routine remediation. Keep the baseline
+limited to reviewed, still-present GHSA IDs: the audit gate fails on new
+high/critical findings and on stale exceptions.
 
 ## Baseline policy
 
@@ -96,11 +70,10 @@ that the vulnerable framework code is unreachable or harmless.
    condition tied to the migration issue that will remove it.
 5. Obsolete entries are removed in the same commit that resolves the advisory.
 
-The 37 entries reviewed on 2026-10-10 predate this policy. They share one
-reason and one exit condition: their fixes require major upgrades of Angular or
-of the Jest tooling, and they leave the baseline with the phase 1 migration
-issues (F1-1 and F1-2 in [`docs/ROADMAP.md`](docs/ROADMAP.md)), with the
-baseline emptied in F1-3.
+The 37 entries reviewed on 2026-10-10 predate this policy. Issue #18 (F1-1)
+removed 35 of them by migrating Angular from 18 to 20. The 2 that remain are
+listed under "Exception and remediation plan" with their exit condition, and
+the baseline is emptied in F1-3.
 
 Entries added after 2026-10-11:
 

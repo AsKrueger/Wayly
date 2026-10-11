@@ -4,7 +4,6 @@ import { PLACE_CATEGORY_LABELS } from '../../core/domain/models/place-category';
 
 @Component({
   selector: 'app-place-card',
-  standalone: true,
   template: `
     <article class="place-card surface-card">
       <div class="place-card__topline">

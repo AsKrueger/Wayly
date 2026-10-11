@@ -21,7 +21,6 @@ import { toPlaceMapMarkers } from './map-markers';
 
 @Component({
   selector: 'app-place-map',
-  standalone: true,
   providers: [
     LeafletPlaceMapAdapter,
     { provide: PlaceMapAdapter, useExisting: LeafletPlaceMapAdapter },

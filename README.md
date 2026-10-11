@@ -6,7 +6,7 @@ Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona
 
 ## Stack inicial
 
-- Angular 18 con Standalone Components y Angular Router
+- Angular 20 con Standalone Components y Angular Router
 - TypeScript strict
 - Leaflet para mapas interactivos opcionales
 - Jest y Angular Testing Utilities
@@ -15,10 +15,10 @@ Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona
 
 ## Requisitos
 
-- Node.js `18.19.1`, `20.11.1` o `22.x`
+- Node.js `20.19`, `22.12` o `24.x`, o una versión posterior dentro de esas mismas líneas
 - npm `10.2` o superior
 
-Estas versiones corresponden al rango soportado por Angular 18.
+Estas versiones corresponden al rango soportado por Angular 20.
 
 Se puede trabajar en Windows y en Ubuntu/Linux con los mismos comandos. En Windows PowerShell, si la política de ejecución bloquea `npm`, usa `npm.cmd`.
 

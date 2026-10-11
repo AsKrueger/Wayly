@@ -9,8 +9,8 @@ updates:
       time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
-    # Temporary exclusion: Angular 18 and its test tooling are upgraded
-    # together in phase 1 (F1-1, F1-2). Remove this block in F1-3.
+    # Temporary exclusion: Angular and its test tooling are upgraded
+    # together in phase 1 (F1-1, F1-2, F1-5). Remove this block in F1-3.
     ignore:
       - dependency-name: '@angular/*'
         update-types: ['version-update:semver-major']
@@ -26,7 +26,7 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@types/jest'
         update-types: ['version-update:semver-major']
-      # Angular 18 supports TypeScript 5.4 and 5.5 only, so minor versions
+      # Angular 20 supports TypeScript 5.8 and 5.9 only, so minor versions
       # are excluded as well.
       - dependency-name: typescript
         update-types:
