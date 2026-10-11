@@ -37,7 +37,22 @@ npm test
 npm run build
 ```
 
-El CI ejecuta estas mismas comprobaciones en cada push; la rama se integra con el CI en verde. Los detalles están en [docs/TESTING.md](docs/TESTING.md).
+El CI ejecuta estas mismas comprobaciones en cada push. Los detalles están en [docs/TESTING.md](docs/TESTING.md).
+
+## Integración y ramas protegidas
+
+`main` y `develop` están protegidas con reglas de rama de GitHub (Settings → Rules → Rulesets):
+
+- Solo se integra mediante pull request; un push directo a `main` o a `develop` es rechazado.
+- La PR no se puede fusionar hasta que estos tres checks estén en verde:
+  - `Quality checks`
+  - `Dependency review`
+  - `Analyze JavaScript and TypeScript`
+- En `develop`, la rama de la issue tiene que estar actualizada con `develop` antes de fusionar. En `main` no se exige, porque `main` solo recibe cambios desde `develop`.
+- No se puede forzar un push ni eliminar ninguna de las dos ramas.
+- No se exigen aprobaciones de revisión: el repositorio tiene un único mantenedor, que no puede aprobarse a sí mismo.
+
+Las reglas no tienen excepciones para el propietario.
 
 ## Cierre de fase
 
