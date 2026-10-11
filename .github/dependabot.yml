@@ -2,15 +2,40 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
       time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
+    # Temporary exclusion: Angular 18 and its test tooling are upgraded
+    # together in phase 1 (F1-1, F1-2). Remove this block in F1-3.
+    ignore:
+      - dependency-name: '@angular/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@angular-devkit/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@angular-eslint/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: jest
+        update-types: ['version-update:semver-major']
+      - dependency-name: jest-environment-jsdom
+        update-types: ['version-update:semver-major']
+      - dependency-name: jest-preset-angular
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/jest'
+        update-types: ['version-update:semver-major']
+      # Angular 18 supports TypeScript 5.4 and 5.5 only, so minor versions
+      # are excluded as well.
+      - dependency-name: typescript
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday

@@ -20,6 +20,8 @@ Wayly es una aplicación web que ayuda a decidir qué hacer en una ciudad o zona
 
 Estas versiones corresponden al rango soportado por Angular 18.
 
+Se puede trabajar en Windows y en Ubuntu/Linux con los mismos comandos. En Windows PowerShell, si la política de ejecución bloquea `npm`, usa `npm.cmd`.
+
 ## Instalación y desarrollo
 
 ```bash
