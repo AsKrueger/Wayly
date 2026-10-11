@@ -23,14 +23,27 @@ Coverage can also be generated with `npm run test:coverage -- --runInBand` when 
 
 ## GitHub Actions CI
 
-The `CI` workflow in `.github/workflows/ci.yml` runs on every branch push, pull request, and manual `workflow_dispatch`. It uses GitHub-hosted Ubuntu, Node.js 22 (within the Angular 18 engine range), npm's lockfile cache, read-only repository permissions and `npm ci`. The required steps run serially so a failed install, lint, test/coverage or production build fails the quality job; there is no deployment and no external credential is required.
+The `CI` workflow in `.github/workflows/ci.yml` runs on every branch push, pull request, and manual `workflow_dispatch`. It uses a GitHub-hosted runner pinned to `ubuntu-24.04`, Node.js 22 (within the Angular 18 engine range), npm's lockfile cache, read-only repository permissions and `npm ci`. The required steps run serially so a failed install, lint, test/coverage or production build fails the quality job; there is no deployment and no external credential is required.
 
 Each run collects Jest coverage and attempts to publish `coverage/lcov.info` plus the browsable HTML report as the `coverage-report` artifact for 14 days, including when an earlier step fails if a report was generated. No minimum coverage threshold is enforced. In a pull request, inspect the **Checks** result for the `Quality checks` job. From a completed Actions run, download `coverage-report` in its **Artifacts** section and open `coverage/lcov-report/index.html`; the command summary and `lcov.info` are available for quick review or tooling.
+
+The same CI workflow verifies npm registry signatures and runs
+`npm run security:audit`, which blocks high/critical advisories not present in
+the reviewed baseline. Pull requests also run Dependency Review and fail for
+new or updated dependencies with high-or-higher severity. A separate pinned
+CodeQL workflow analyzes JavaScript and TypeScript on pushes, pull requests and
+weekly. Dependabot checks npm and GitHub Actions updates weekly. See
+[`DEPENDENCY_SECURITY.md`](../DEPENDENCY_SECURITY.md) for the current advisory
+baseline, its limits and the security reporting policy.
+
+Development is supported on Windows and on Ubuntu/Linux; the npm scripts, including the advisory gate, do not depend on the operating system. On Ubuntu/Linux, the commands at the top of this document plus `npm audit signatures` and `npm run security:audit` reproduce CI as written.
 
 To reproduce CI from Windows PowerShell, use `npm.cmd` (the `npm` PowerShell shim may be blocked by local execution policy):
 
 ```powershell
 npm.cmd ci
+npm.cmd audit signatures
+npm.cmd run security:audit
 npm.cmd run lint
 npm.cmd run test:coverage
 npm.cmd run build
@@ -41,7 +54,7 @@ From Command Prompt or a PowerShell environment where npm scripts are enabled, t
 
 ## Test organization and purpose
 
-Jest 29 with `jest-preset-angular` runs `src/**/*.spec.ts` using the `tsconfig.spec.json` CommonJS test configuration and `setup-jest.ts`. Production TypeScript remains strict through `tsconfig.json`; ESLint checks TypeScript and Angular templates.
+Jest 29 with `jest-preset-angular` runs `src/**/*.spec.ts` using the `tsconfig.spec.json` CommonJS test configuration and `setup-jest.ts`. The same runner also executes `scripts/**/*.spec.cjs`, including regression tests for the dependency-advisory baseline gate. Production TypeScript remains strict through `tsconfig.json`; ESLint checks TypeScript and Angular templates.
 
 - `src/app/core/domain/services/`: framework-independent recommendation compatibility, score criteria and stable ordering.
 - `src/app/features/discover/application/`: comparison projection from existing recommendation results; no Angular dependency.
