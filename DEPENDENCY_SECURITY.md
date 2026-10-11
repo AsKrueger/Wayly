@@ -119,9 +119,8 @@ no matches were found. This is not a complete secret scan and does not inspect
 repository history, ignored local files or GitHub-hosted secrets. The
 repository's Dependency graph and Dependabot alerts were initially disabled;
 both were enabled during PR validation with maintainer approval so Dependency
-Review could run. Dependabot security updates and private vulnerability
-reporting remain disabled; Secret Protection was not enabled. Push protection
-and branch-protection rules have not been verified.
+Review could run. The current state of every GitHub security setting and of
+the branch rulesets is recorded in [`SECURITY.md`](SECURITY.md).
 
 When those alerts were enabled, GitHub reported **62 vulnerabilities** on the
 default branch (1 critical, 33 high, 24 moderate and 4 low). This is a separate
