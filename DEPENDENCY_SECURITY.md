@@ -21,6 +21,29 @@ packages are `@angular/common`, `@angular/compiler`, `@angular/core` and
 `@angular/router`. Treat these as unresolved risks, not as vulnerabilities
 that have been fixed or proven unexploitable.
 
+### Packages and advisories are counted differently
+
+`npm audit` counts affected packages; the baseline lists advisories. The two
+numbers are not expected to match:
+
+| Scope | Packages with high/critical findings | Unique high/critical advisories |
+|---|---:|---:|
+| All installed dependencies | 67 (2 critical + 65 high) | 37 |
+| Production dependencies | 4 | 13 |
+
+- One advisory can affect several packages, and a package is also counted when
+  it only depends on a vulnerable package. That is why 37 advisories produce 67
+  affected packages: 19 of the 67 are named directly by an advisory and the
+  other 48 are reported only because they depend on one of those.
+- One package can carry several advisories. In production, `@angular/common`
+  has 6, `@angular/core` 5, `@angular/compiler` 4 and `@angular/router` 1. That
+  adds up to 16 because some advisories are reported for more than one package;
+  there are 13 distinct ones.
+
+The 13 production advisories are part of the 37, and
+`security/npm-audit-baseline.json` holds those 37 advisory IDs. The gate
+compares advisory IDs, not package counts.
+
 `npm audit fix --dry-run` proposed no compatible automatic changes. The
 available fixes for the affected direct Angular and Jest dependencies require
 major upgrades beyond this project's Angular 18/Jest 29 foundation. Do not use
@@ -58,6 +81,32 @@ that the vulnerable framework code is unreachable or harmless.
    gate fails on new high/critical findings and stale exceptions; do not add
    IDs without documenting their package path, severity, production/build
    scope and remediation decision.
+
+## Baseline policy
+
+**Status:** approved by the repository owner on **2026-10-11**.
+
+1. Only the repository owner approves changes to
+   `security/npm-audit-baseline.json`.
+2. Every new entry is recorded in the table below with its reason and its exit
+   condition.
+3. An advisory that has a patch within the current major version is fixed, not
+   added to the baseline.
+4. If the patch requires a major version, the advisory is accepted with an exit
+   condition tied to the migration issue that will remove it.
+5. Obsolete entries are removed in the same commit that resolves the advisory.
+
+The 37 entries reviewed on 2026-10-10 predate this policy. They share one
+reason and one exit condition: their fixes require major upgrades of Angular or
+of the Jest tooling, and they leave the baseline with the phase 1 migration
+issues (F1-1 and F1-2 in [`docs/ROADMAP.md`](docs/ROADMAP.md)), with the
+baseline emptied in F1-3.
+
+Entries added after 2026-10-11:
+
+| Advisory | Package and scope | Reason | Exit condition | Approved on |
+|---|---|---|---|---|
+| None | | | | |
 
 `npm audit signatures` succeeded for the installed dependency tree during this
 review: registry signatures were verified for the reported packages. npm
@@ -98,9 +147,15 @@ build. CI is configured for Node.js 22.
   updated dependencies with high-or-higher severity.
 - `.github/workflows/codeql.yml` analyzes JavaScript and TypeScript on pushes,
   pull requests and a weekly schedule.
-- `.github/dependabot.yml` checks npm dependencies and GitHub Actions weekly.
+- `.github/dependabot.yml` checks npm dependencies and GitHub Actions weekly
+  and targets `develop`. Major updates of Angular, its Jest tooling and
+  TypeScript (also minor updates for TypeScript) are excluded until F1-3.
+  GitHub reads this file from the default branch, so these settings take effect
+  once the phase 0 closing PR brings them to `main`.
 - Workflow actions are pinned to verified full commit SHAs and retain version
   comments for reviewability.
+- All workflow jobs run on `ubuntu-24.04` rather than `ubuntu-latest`, so a
+  runner image change is a reviewed commit.
 
 Wayly is a public repository, so GitHub code scanning with CodeQL is available
 for public repositories without an Advanced Security subscription. The
@@ -116,10 +171,22 @@ the stale entry to be removed. Review the remaining baseline regularly and do
 not add new IDs merely to make CI pass; first assess the advisory, affected
 dependency path, compatibility and remediation options.
 
-## Reproducing the checks on Windows
+## Reproducing the checks on Windows and Ubuntu/Linux
 
 Use a supported Node.js release (CI uses Node 22) and npm, from the repository
-root in PowerShell:
+root. On Ubuntu/Linux:
+
+```bash
+npm ci
+npm audit signatures
+npm run security:audit
+npm run lint
+npm run test:coverage
+npm run build
+git diff --check
+```
+
+On Windows PowerShell:
 
 ```powershell
 npm.cmd ci
