@@ -3,12 +3,12 @@
 ## Current baseline
 
 The figures below were recorded on **2026-10-25** on `feature/issue42`, after
-the migration to Angular 21 (issue #42), from the `package-lock.json` using
+the migration to Angular 22 (issue #42), from the `package-lock.json` using
 `npm audit`:
 
 | Scope | Critical | High | Moderate | Low | Total |
 |---|---:|---:|---:|---:|---:|
-| All installed dependencies | 0 | 0 | 5 | 0 | 5 |
+| All installed dependencies | 0 | 0 | 0 | 0 | 0 |
 | Production dependencies (`npm audit --omit=dev`) | 0 | 0 | 0 | 0 | 0 |
 
 For comparison, the review of 2026-10-10 on Angular 18 reported 95 affected
@@ -18,12 +18,11 @@ issue #18 alone the total was 45 (38 high). The moderate count rose from 7 to
 they depend on `sprintf-js`, which has a moderate advisory. The gate only
 tracks high and critical advisories.
 
-The production audit is clean. The 5 moderate advisories are in the development
-tree (Jest 30, through `sprintf-js`); they are outside the high/critical gate
-and are reviewed in F1-3. The Angular 20.3.33 runtime advisories that were open
-on this date are closed by the migration to Angular 21. Treat the remaining
-findings as unresolved risks, not as vulnerabilities that have been fixed or
-proven unexploitable.
+Both audits report no known vulnerabilities for the locked tree. The Angular
+20.3.33 runtime advisories and the Jest 30 moderate advisories that were open
+before this migration are no longer reported. Treat this as the state of the
+advisory database on the date above, not as a permanent guarantee: F1-3 still
+reviews the development tree.
 
 ### Packages and advisories are counted differently
 
@@ -42,16 +41,18 @@ advisory IDs, not package counts.
 
 | Advisory | Package | Scope | Fix |
 |---|---|---|---|
-The table is empty since issue #42. Angular 21 closed its entries:
+The table is empty since issue #42. Angular 21 and 22 closed its entries:
 
 - GHSA-587h-7wmj-h5pm (`vite`) and GHSA-g84c-rxfj-3j2c (`webpack-dev-middleware`),
   fixed by `@angular-devkit/build-angular` 21.
 - GHSA-vfj7-8cjw-p6xm (`braces`), which `npm audit` no longer reports for the
   locked tree.
-- GHSA-xjj6-f33q-929c (`undici`), reported after the upgrade: `@angular/build`
-  21.2.28 pins `undici` 7.29.1 exactly, and the fix is 7.30.1. `package.json`
-  has `overrides` that set `undici` to 7.30.1 only inside `@angular/build`, so
-  the `undici` 8 used by jsdom in Jest is not affected.
+- GHSA-xjj6-f33q-929c (`undici`), reported after the upgrade to Angular 21 and
+  fixed by an override of `undici` 7.30.1 inside `@angular/build`. Angular 22
+  no longer depends on `undici`, so that override was removed.
+- On Angular 22, `vite` 8.3.0 to 8.3.2 is reported under GHSA-587h-7wmj-h5pm.
+  An override of `vite` 8.3.5 inside `@angular/build` fixes it, so the advisory
+  stays out of the baseline.
 
 `npm audit` offers no fix for either within Angular 20: both require the
 Angular 21 build packages. Issue #19 (F1-2) removed the tooling blocker by
