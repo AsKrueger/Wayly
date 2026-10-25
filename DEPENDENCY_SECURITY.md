@@ -2,13 +2,13 @@
 
 ## Current baseline
 
-The figures below were recorded on **2026-10-11**, after the migration from
-Angular 18 to Angular 20 (issue #18) and of Jest and ESLint (issue #19), from
-the committed `package-lock.json` using `npm audit`:
+The figures below were recorded on **2026-10-25** on `feature/issue42`, after
+the migration to Angular 22 (issue #42), from the `package-lock.json` using
+`npm audit`:
 
 | Scope | Critical | High | Moderate | Low | Total |
 |---|---:|---:|---:|---:|---:|
-| All installed dependencies | 0 | 9 | 23 | 0 | 32 |
+| All installed dependencies | 0 | 0 | 0 | 0 | 0 |
 | Production dependencies (`npm audit --omit=dev`) | 0 | 0 | 0 | 0 | 0 |
 
 For comparison, the review of 2026-10-10 on Angular 18 reported 95 affected
@@ -18,10 +18,11 @@ issue #18 alone the total was 45 (38 high). The moderate count rose from 7 to
 they depend on `sprintf-js`, which has a moderate advisory. The gate only
 tracks high and critical advisories.
 
-The production audit is clean: the Angular 20 runtime packages carry no known
-advisory. Every remaining finding is in the development and build dependency
-tree. Treat them as unresolved risks, not as vulnerabilities that have been
-fixed or proven unexploitable.
+Both audits report no known vulnerabilities for the locked tree. The Angular
+20.3.33 runtime advisories and the Jest 30 moderate advisories that were open
+before this migration are no longer reported. Treat this as the state of the
+advisory database on the date above, not as a permanent guarantee: F1-3 still
+reviews the development tree.
 
 ### Packages and advisories are counted differently
 
@@ -30,24 +31,28 @@ numbers are not expected to match:
 
 | Scope | Packages with high/critical findings | Unique high/critical advisories |
 |---|---:|---:|
-| All installed dependencies | 9 | 2 |
+| All installed dependencies | 0 | 0 |
 | Production dependencies | 0 | 0 |
 
-One advisory can affect several packages, and a package is also counted when it
-only depends on a vulnerable package. Only 2 of the 9 packages are named
-directly by an advisory (`braces` and `webpack-dev-middleware`); the other 7,
-all of them Angular build and development-server packages, are reported because
-they depend on one of those two.
-
-`security/npm-audit-baseline.json` holds those 2 advisory IDs. The gate
-compares advisory IDs, not package counts.
+`security/npm-audit-baseline.json` is empty since issue #42. The gate compares
+advisory IDs, not package counts.
 
 ## Exception and remediation plan
 
 | Advisory | Package | Scope | Fix |
 |---|---|---|---|
-| GHSA-vfj7-8cjw-p6xm | `braces` | Development and build | `@angular-devkit/build-angular` 21 |
-| GHSA-g84c-rxfj-3j2c | `webpack-dev-middleware` | Development and build | `@angular-devkit/build-angular` 21 |
+The table is empty since issue #42. Angular 21 and 22 closed its entries:
+
+- GHSA-587h-7wmj-h5pm (`vite`) and GHSA-g84c-rxfj-3j2c (`webpack-dev-middleware`),
+  fixed by `@angular-devkit/build-angular` 21.
+- GHSA-vfj7-8cjw-p6xm (`braces`), which `npm audit` no longer reports for the
+  locked tree.
+- GHSA-xjj6-f33q-929c (`undici`), reported after the upgrade to Angular 21 and
+  fixed by an override of `undici` 7.30.1 inside `@angular/build`. Angular 22
+  no longer depends on `undici`, so that override was removed.
+- On Angular 22, `vite` 8.3.0 to 8.3.2 is reported under GHSA-587h-7wmj-h5pm.
+  An override of `vite` 8.3.5 inside `@angular/build` fixes it, so the advisory
+  stays out of the baseline.
 
 `npm audit` offers no fix for either within Angular 20: both require the
 Angular 21 build packages. Issue #19 (F1-2) removed the tooling blocker by
@@ -82,7 +87,7 @@ Entries added after 2026-10-11:
 
 | Advisory | Package and scope | Reason | Exit condition | Approved on |
 |---|---|---|---|---|
-| None | | | | |
+| GHSA-587h-7wmj-h5pm | `vite`, development and build | The only fix is `@angular-devkit/build-angular` 21, a major update (rule 4). | Closed on 2026-10-25 by Angular 21 (F1-5, #42) | 2026-10-25, pending confirmation by the repository owner |
 
 `npm audit signatures` succeeded for the installed dependency tree during this
 review: registry signatures were verified for the reported packages. npm
@@ -125,8 +130,8 @@ build. CI is configured for Node.js 22.
 - `.github/dependabot.yml` checks npm dependencies and GitHub Actions weekly
   and targets `develop`. Major updates of Angular, its Jest tooling and
   TypeScript (also minor updates for TypeScript) are excluded until F1-3.
-  GitHub reads this file from the default branch, so these settings take effect
-  once the phase 0 closing PR brings them to `main`.
+  GitHub reads this file from the default branch, `main`, where it has been in
+  effect since the phase 0 closing PR (#27).
 - Workflow actions are pinned to verified full commit SHAs and retain version
   comments for reviewability.
 - All workflow jobs run on `ubuntu-24.04` rather than `ubuntu-latest`, so a
@@ -138,8 +143,8 @@ CodeQL workflow ran successfully for PR #18 and uploaded analysis results.
 Code-scanning alerts and default-branch results should still be confirmed in
 the **Security** tab after merge.
 
-The 37 advisory IDs in the baseline are an explicit temporary exception for
-the findings observed on the review date. When resolving findings, update
+The baseline holds 2 advisory IDs (`braces` and `webpack-dev-middleware`), the
+explicit temporary exception described above. When resolving findings, update
 dependencies and remove resolved IDs from the baseline in the same change.
 The checker fails if an allowlisted advisory is no longer reported, prompting
 the stale entry to be removed. Review the remaining baseline regularly and do

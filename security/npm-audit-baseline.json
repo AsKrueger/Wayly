@@ -1,7 +1,4 @@
 {
-  "reviewedOn": "2026-10-11",
-  "knownHighCriticalGhsas": [
-    "GHSA-g84c-rxfj-3j2c",
-    "GHSA-vfj7-8cjw-p6xm"
-  ]
+  "reviewedOn": "2026-10-25",
+  "knownHighCriticalGhsas": []
 }

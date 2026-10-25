@@ -2,7 +2,7 @@
 
 ## Requirements and commands
 
-Use a Node.js version supported by Angular 20 (`20.19` or later, `22.12` or later, or `24.x`) and npm `10.2` or newer. From a clean checkout:
+Use a Node.js version supported by Angular 22 (`22.22.3` or later, `24.15` or later, or `26` or later) and npm `10.2` or newer. From a clean checkout:
 
 ```bash
 npm ci
@@ -23,7 +23,7 @@ Coverage can also be generated with `npm run test:coverage -- --runInBand` when 
 
 ## GitHub Actions CI
 
-The `CI` workflow in `.github/workflows/ci.yml` runs on every branch push, pull request, and manual `workflow_dispatch`. It uses a GitHub-hosted runner pinned to `ubuntu-24.04`, Node.js 22 (within the Angular 20 engine range), npm's lockfile cache, read-only repository permissions and `npm ci`. The required steps run serially so a failed install, lint, test/coverage or production build fails the quality job; there is no deployment and no external credential is required.
+The `CI` workflow in `.github/workflows/ci.yml` runs on every branch push, pull request, and manual `workflow_dispatch`. It uses a GitHub-hosted runner pinned to `ubuntu-24.04`, Node.js 22 (within the Angular 22 engine range), npm's lockfile cache, read-only repository permissions and `npm ci`. The required steps run serially so a failed install, lint, test/coverage or production build fails the quality job; there is no deployment and no external credential is required.
 
 Each run collects Jest coverage and attempts to publish `coverage/lcov.info` plus the browsable HTML report as the `coverage-report` artifact for 14 days, including when an earlier step fails if a report was generated. No minimum coverage threshold is enforced. In a pull request, inspect the **Checks** result for the `Quality checks` job. From a completed Actions run, download `coverage-report` in its **Artifacts** section and open `coverage/lcov-report/index.html`; the command summary and `lcov.info` are available for quick review or tooling.
 

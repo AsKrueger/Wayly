@@ -1,7 +1,7 @@
 # Roadmap de Wayly
 
-- **Última revisión:** 2026-10-11
-- **Estado:** Fase 0 en curso
+- **Última revisión:** 2026-10-25
+- **Estado:** Fase 0 cerrada; fase 1 en curso (F1-1 y F1-2 integradas en `develop`)
 - **Principio rector:** coste cero. No se contrata ningún servicio ni se activa ninguna función de pago.
 
 ## Punto de partida
@@ -67,9 +67,9 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 | --- | --- | --- | --- |
 | F1-1 | #18 | Migración de Angular | De la 18 a la 20, de mayor en mayor. Se detiene en la 20 porque la 21 exigía Jest 30 (F1-2) |
 | F1-2 | #19 | Migración de herramientas | Jest 30 y ESLint 9 con configuración plana. TypeScript se queda en la 5.9 hasta la F1-5 |
-| F1-3 | | Vaciado de la línea base | Eliminar entradas resueltas y retirar la exclusión de versiones mayores en Dependabot |
-| F1-4 | | Endurecimiento menor | CSP en `src/index.html`, CI sin ejecución doble y pruebas de las rutas de error del gate |
-| F1-5 | | Migración de Angular a la 22 | Saltos 20 → 21 → 22. Va después de la F1-2 y antes de la F1-3; el LTS de Angular 20 termina el 2026-11-28 |
+| F1-3 | #43 | Vaciado de la línea base | Eliminar entradas resueltas y retirar la exclusión de versiones mayores en Dependabot |
+| F1-4 | #44 | Endurecimiento menor | CSP en `src/index.html`, CI sin ejecución doble y pruebas de las rutas de error del gate |
+| F1-5 | #42 | Migración de Angular a la 22 | Saltos 20 → 21 → 22. Va después de la F1-2 y antes de la F1-3; el LTS de Angular 20 termina el 2026-11-28 |
 
 **Salida:** cero avisos altos o críticos en dependencias de producción y línea base vacía o casi vacía.
 
@@ -157,3 +157,5 @@ Solo si sigue siendo gratis:
 | Fecha | Fase cerrada | Ritmo frente a lo previsto | Cambios en la roadmap | Siguiente |
 | --- | --- | --- | --- | --- |
 | 2026-10-11 | Ninguna (creación) | Sin referencia todavía | Versión inicial, reestructurada desde cero | Fase 0 |
+| 2026-10-11 | Fase 0 | Sin referencia previa; cerrada el mismo día que se creó la roadmap | Sin cambios de alcance; la excepción de Dependabot deja de aplicarse | Fase 1 |
+| 2026-10-25 | Ninguna (revisión tras F1-2) | Según lo previsto | F1-5 (Angular 22) añadida tras el análisis de la #19; fila de la F1-1 y F1-2 confirmadas | F1-5 (#42), después F1-3 |

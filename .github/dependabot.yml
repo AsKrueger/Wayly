@@ -26,8 +26,8 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@types/jest'
         update-types: ['version-update:semver-major']
-      # Angular 20 supports TypeScript 5.8 and 5.9 only, so minor versions
-      # are excluded as well.
+      # Angular 22 supports TypeScript 6.0 only, so minor versions are
+      # excluded as well.
       - dependency-name: typescript
         update-types:
           - 'version-update:semver-major'
