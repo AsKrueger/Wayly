@@ -21,8 +21,8 @@ tracks high and critical advisories.
 Both audits report no known vulnerabilities for the locked tree. The Angular
 20.3.33 runtime advisories and the Jest 30 moderate advisories that were open
 before this migration are no longer reported. Treat this as the state of the
-advisory database on the date above, not as a permanent guarantee: F1-3 still
-reviews the development tree.
+advisory database on the date above, not as a permanent guarantee. The
+development tree was reviewed again in F1-3 on the same date.
 
 ### Packages and advisories are counted differently
 
@@ -128,10 +128,11 @@ build. CI is configured for Node.js 22.
 - `.github/workflows/codeql.yml` analyzes JavaScript and TypeScript on pushes,
   pull requests and a weekly schedule.
 - `.github/dependabot.yml` checks npm dependencies and GitHub Actions weekly
-  and targets `develop`. Major updates of Angular, its Jest tooling and
-  TypeScript (also minor updates for TypeScript) are excluded until F1-3.
-  GitHub reads this file from the default branch, `main`, where it has been in
-  effect since the phase 0 closing PR (#27).
+  and targets `develop`. Major updates of Angular, Jest and their tooling are
+  not excluded (F1-3). TypeScript minor and major updates stay excluded because
+  Angular 22 supports only TypeScript 6.0. GitHub reads this file from the
+  default branch, `main`, so this change takes effect once the F1-3 pull request
+  is merged into `develop` and later into `main`.
 - Workflow actions are pinned to verified full commit SHAs and retain version
   comments for reviewability.
 - All workflow jobs run on `ubuntu-24.04` rather than `ubuntu-latest`, so a
