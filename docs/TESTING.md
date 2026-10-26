@@ -99,7 +99,7 @@ After explicitly collecting all source files, adding focused entry-point and Lea
 
 The table was measured with Jest 29. With Jest 30 the same tests and source report **91.91% branches** for all collected source, because branches are counted differently; statements, functions and lines are unchanged.
 
-These values are a snapshot, not a quality target; rerun the command to get the current result. Remaining uncovered lines/branches are defensive or degenerate paths (for example equal duplicate recommendation IDs, no-map component guards, the store's non-error retry guard and an absent-budget display fallback). They should only gain tests if their contract or risk warrants it.
+These values are a snapshot, not a quality target; rerun the command to get the current result. They were re-measured on 2026-10-25 with Angular 22 and TypeScript 6, with the same results. Remaining uncovered lines/branches are defensive or degenerate paths (for example equal duplicate recommendation IDs, no-map component guards, the store's non-error retry guard and an absent-budget display fallback). They should only gain tests if their contract or risk warrants it.
 
 No global coverage threshold is configured. The current measurements are useful for finding gaps, but a blanket percentage would make low-risk presentation paths count like compatibility, scoring and adapter failure behavior, and could encourage tests that inflate a number rather than protect a contract. Reconsider thresholds when project behavior and coverage ownership are stable; prefer focused thresholds for critical pure-domain modules if they become useful.
 

@@ -9,25 +9,9 @@ updates:
       time: '06:00'
       timezone: UTC
     open-pull-requests-limit: 5
-    # Temporary exclusion: Angular and its test tooling are upgraded
-    # together in phase 1 (F1-1, F1-2, F1-5). Remove this block in F1-3.
+    # Angular 22 declares a peer range of TypeScript >=6.0 <6.1, so TypeScript
+    # updates are held back by the framework, not by a temporary exclusion.
     ignore:
-      - dependency-name: '@angular/*'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@angular-devkit/*'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@angular-eslint/*'
-        update-types: ['version-update:semver-major']
-      - dependency-name: jest
-        update-types: ['version-update:semver-major']
-      - dependency-name: jest-environment-jsdom
-        update-types: ['version-update:semver-major']
-      - dependency-name: jest-preset-angular
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@types/jest'
-        update-types: ['version-update:semver-major']
-      # Angular 22 supports TypeScript 6.0 only, so minor versions are
-      # excluded as well.
       - dependency-name: typescript
         update-types:
           - 'version-update:semver-major'
