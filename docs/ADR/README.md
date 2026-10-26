@@ -10,5 +10,6 @@ The ADRs in this directory document the initial architectural decisions that sha
 - [ADR-0006 — Initial Hosting Strategy](ADR-0006-Initial-Hosting-Strategy.md)
 - [ADR-0007 — Defer External Place Provider](ADR-0007-Defer-External-Place-Provider.md)
 - [ADR-0008 — Interactive Map Provider](ADR-0008-Interactive-Map-Provider.md)
+- [ADR-0009 — Location Selection and Per-Locality Catalogues](ADR-0009-Location-Selection.md)
 
 These ADRs represent real decisions that guide the roadmap and should be updated if project direction changes.

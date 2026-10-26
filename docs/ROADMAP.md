@@ -93,7 +93,7 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F3-1 | | Geografía y ubicación | Ciudad de lanzamiento, entrada de ubicación con consentimiento, radio, límite de resultados y lugar de la atribución, recogidos en un ADR |
+| F3-1 | #52 | Geografía y ubicación | Selección país → región → provincia → localidad en el formulario, radio de 15 km, sin límite de resultados, cobertura por países (España primero) y atribución, recogidos en el ADR-0009 |
 
 **Salida:** un ADR nuevo que sustituya los criterios de revisión de ADR-0007.
 
@@ -105,8 +105,8 @@ Esta fase no depende del código y puede resolverse en paralelo a las fases 1 y 
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F4-1 | | Catálogo desde OpenStreetMap | Generar un catálogo estático a partir de un extracto de la ciudad elegida, procesado fuera de línea, y documentar cómo se regenera |
-| F4-2 | | Adaptador de catálogo estático | Nuevo adaptador de `PlaceCatalog` sobre JSON, con atribución de OpenStreetMap y cumplimiento de ODbL |
+| F4-1 | #53 | Catálogo desde OpenStreetMap | Generar un catálogo estático por localidad de España a partir de un extracto, procesado fuera de línea, y documentar cómo se regenera |
+| F4-2 | #54 | Adaptador de catálogo estático | Nuevo adaptador de `PlaceCatalog` sobre JSON, selector en cascada por localidad, atribución de OpenStreetMap y cumplimiento de ODbL |
 
 **Salida:** Discover muestra lugares reales con coordenadas y el mapa se ve.
 
