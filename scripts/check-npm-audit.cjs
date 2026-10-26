@@ -36,6 +36,32 @@ function evaluateReport(report, baselineIds) {
   };
 }
 
+function readAuditReport(result) {
+  if (result.error) {
+    return { error: `Unable to run npm audit: ${result.error.message}` };
+  }
+
+  if (result.signal) {
+    return { error: `npm audit was interrupted by ${result.signal}.` };
+  }
+
+  let report;
+  try {
+    report = JSON.parse(result.stdout);
+  } catch {
+    const stderr = result.stderr ? `\n${result.stderr.trim()}` : '';
+    return { error: `npm audit did not return valid JSON.${stderr}` };
+  }
+
+  if (!report || typeof report !== 'object' || report.error ||
+      !report.vulnerabilities || !report.metadata?.vulnerabilities) {
+    const detail = JSON.stringify(report?.error ?? report, null, 2);
+    return { error: `npm audit returned an error or an incomplete report.\n${detail}` };
+  }
+
+  return { report };
+}
+
 function run() {
   const npmCli = process.env.npm_execpath;
   if (!npmCli) {
@@ -49,36 +75,13 @@ function run() {
     maxBuffer: 10 * 1024 * 1024
   });
 
-  if (result.error) {
-    console.error(`Unable to run npm audit: ${result.error.message}`);
+  const outcome = readAuditReport(result);
+  if (outcome.error) {
+    console.error(outcome.error);
     process.exitCode = 1;
     return;
   }
-
-  let report;
-  try {
-    report = JSON.parse(result.stdout);
-  } catch {
-    console.error('npm audit did not return valid JSON.');
-    if (result.stderr) {
-      console.error(result.stderr.trim());
-    }
-    process.exitCode = 1;
-    return;
-  }
-
-  if (report.error || !report.vulnerabilities || !report.metadata?.vulnerabilities) {
-    console.error('npm audit returned an error or an incomplete report.');
-    console.error(JSON.stringify(report.error ?? report, null, 2));
-    process.exitCode = 1;
-    return;
-  }
-
-  if (result.signal) {
-    console.error(`npm audit was interrupted by ${result.signal}.`);
-    process.exitCode = 1;
-    return;
-  }
+  const report = outcome.report;
 
   const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
   const baselineIds = new Set(baseline.knownHighCriticalGhsas);
@@ -108,7 +111,7 @@ function run() {
   console.log('No new high/critical advisories; baseline matches the current audit report.');
 }
 
-module.exports = { evaluateReport };
+module.exports = { evaluateReport, readAuditReport };
 
 if (require.main === module) {
   run();
