@@ -1,6 +1,6 @@
 # ADR-0009: Location Selection and Per-Locality Catalogues
 
-- Status: Proposed. Pending owner approval of the attribution text and the Spanish administrative mapping (see Open items).
+- Status: Accepted on 2026-10-26 by the repository owner. The attribution text and the Spanish administrative mapping were approved; verification of Ceuta and Melilla is part of F4-1.
 - Date: 2026-10-26
 - Supersedes the location criteria of [ADR-0007](ADR-0007-Defer-External-Place-Provider.md).
 

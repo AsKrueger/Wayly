@@ -8,3 +8,6 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+
+# Generated catalogues stay local until their volume is measured (F4-1).
+/catalog-output/
