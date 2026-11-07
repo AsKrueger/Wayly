@@ -405,4 +405,68 @@ describe('DiscoverPageComponent', () => {
     expect(harness.routeNativeElement?.querySelector('[role="status"]')?.textContent)
       .toContain('Propuesta generada localmente');
   });
+
+  it('ignores a proposal request while the catalog is not loaded successfully', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        {
+          provide: PlaceCatalog,
+          useValue: { getAll: () => Promise.reject(new Error('fixture read failed')) },
+        },
+      ],
+    });
+
+    const harness = await RouterTestingHarness.create();
+    const page = await harness.navigateByUrl('/', DiscoverPageComponent);
+    await harness.fixture.whenStable();
+
+    page.generateProposal();
+    harness.fixture.detectChanges();
+
+    expect(page.hasGenerated()).toBe(false);
+    expect(harness.routeNativeElement?.querySelector('[role="alert"]')?.textContent).toContain(
+      'No se pudieron cargar los lugares',
+    );
+    expect(harness.routeNativeElement?.textContent).not.toContain('Propuesta generada localmente');
+  });
+
+  it('keeps the comparison closed and without a selection when it is not ready', async () => {
+    const harness = await loadDiscoverPage([SAMPLE_PLACES[1]]);
+    const page = harness.routeDebugElement?.componentInstance as DiscoverPageComponent;
+    generateProposal(harness);
+    page.selectPlace(SAMPLE_PLACES[1].id);
+
+    page.openPlanBattle();
+    harness.fixture.detectChanges();
+
+    expect(page.isPlanBattleOpen()).toBe(false);
+    expect(page.selectedPlaceId()).toBe(SAMPLE_PLACES[1].id);
+    expect(page.selectedPlanBattlePlaceName()).toBeNull();
+    expect(page.planBattleAffinitySummary(page.planBattle())).toBe('');
+    expect(harness.routeNativeElement?.querySelector('.plan-battle')).toBeNull();
+  });
+
+  it('names the second alternative when it has the higher affinity', async () => {
+    const tiePlaces = [
+      { ...SAMPLE_PLACES[1], id: 'option-a', name: 'Opción A' },
+      { ...SAMPLE_PLACES[1], id: 'option-b', name: 'Opción B' },
+    ];
+    const harness = await loadDiscoverPage(tiePlaces);
+    const page = harness.routeDebugElement?.componentInstance as DiscoverPageComponent;
+    const comparison = page.planBattle();
+    if (comparison.kind !== 'ready') {
+      throw new Error('Expected a ready comparison for two compatible places.');
+    }
+
+    const summary = page.planBattleAffinitySummary({
+      ...comparison,
+      affinity: 'second-higher',
+      affinityDifference: 12.5,
+    });
+
+    expect(summary).toContain('Opción B tiene 12.50 puntos más de afinidad orientativa');
+    expect(summary).toContain('Esto no determina cuál debes elegir.');
+  });
 });
