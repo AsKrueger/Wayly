@@ -80,4 +80,51 @@ describe('PlaceCardComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain(expectedLabel);
   });
+
+  it.each([
+    ['medium', 'Medio'],
+    ['flexible', 'Flexible'],
+  ] as const)('labels the %s budget level', async (budgetLevel, expectedLabel) => {
+    const place: Place = {
+      id: `place-${budgetLevel}`,
+      name: 'Lugar con presupuesto',
+      description: 'Ficha usada para comprobar la etiqueta de presupuesto.',
+      category: 'food',
+      budgetLevel,
+      source: 'fixture-test',
+      dataStatus: 'fictional',
+    };
+    const fixture = TestBed.createComponent(PlaceCardComponent);
+    fixture.componentRef.setInput('place', place);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const details = fixture.nativeElement.querySelector('.place-card__details');
+    expect(fixture.componentInstance.budgetLabel).toBe(expectedLabel);
+    expect(details.textContent).toContain(expectedLabel);
+    expect(details.textContent).not.toContain('·');
+    expect(details.textContent).not.toContain('min');
+  });
+
+  it('shows only the visit duration when the budget level is unknown', async () => {
+    const place: Place = {
+      id: 'place-without-budget',
+      name: 'Lugar sin presupuesto',
+      description: 'Ficha con duración estimada pero sin presupuesto.',
+      category: 'culture',
+      estimatedVisitMinutes: 45,
+      source: 'fixture-test',
+      dataStatus: 'fictional',
+    };
+    const fixture = TestBed.createComponent(PlaceCardComponent);
+    fixture.componentRef.setInput('place', place);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const details = fixture.nativeElement.querySelector('.place-card__details');
+    expect(fixture.componentInstance.budgetLabel).toBe('');
+    expect(details.textContent).toContain('aprox. 45 min');
+    expect(details.textContent).not.toContain('·');
+    expect(details.textContent).not.toContain('undefined');
+  });
 });
