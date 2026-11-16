@@ -128,6 +128,47 @@ describe('DiscoverStore', () => {
     expect(store.resultCount()).toBe(1);
   });
 
+  it('exposes the catalog error message only while the catalog is in error', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    let resolveRetry: (places: readonly Place[]) => void = () => undefined;
+    const getAll = jest.fn()
+      .mockRejectedValueOnce(new Error('catalog unavailable'))
+      .mockReturnValueOnce(new Promise<readonly Place[]>((resolve) => {
+        resolveRetry = resolve;
+      }));
+    const store = configureStore(getAll);
+
+    expect(store.catalogErrorMessage()).toBeNull();
+
+    await Promise.resolve();
+
+    expect(store.catalogErrorMessage()).toBe(
+      'No se pudieron cargar los lugares. Comprueba tu conexión e inténtalo de nuevo.',
+    );
+
+    const retry = store.retryLoading();
+
+    expect(store.catalogState()).toEqual({ kind: 'loading' });
+    expect(store.catalogErrorMessage()).toBeNull();
+
+    resolveRetry(SAMPLE_PLACES);
+    await retry;
+
+    expect(store.catalogState().kind).toBe('success');
+    expect(store.catalogErrorMessage()).toBeNull();
+  });
+
+  it('ignores retries when the catalog has not failed', async () => {
+    const getAll = jest.fn().mockResolvedValue(SAMPLE_PLACES);
+    const store = configureStore(getAll);
+    await Promise.resolve();
+
+    await store.retryLoading();
+
+    expect(getAll).toHaveBeenCalledTimes(1);
+    expect(store.catalogState().kind).toBe('success');
+  });
+
   it('uses the real sample catalog adapter without external requests', async () => {
     TestBed.configureTestingModule({
       providers: [
