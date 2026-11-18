@@ -54,6 +54,70 @@
   --transition-fast: 140ms ease;
   --transition-standard: 220ms ease;
   --z-header: 10;
+
+  --color-on-brand: #fff;
+  --color-success: #1d7a4c;
+  --color-warning: #8a5a00;
+}
+
+/* Dark theme: automatic unless the user forced light, or forced dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-brand: #4fc3a1;
+    --color-brand-hover: #74d4b7;
+    --color-brand-soft: #143a31;
+    --color-accent: #f0b85f;
+    --color-accent-soft: #3a2d17;
+    --color-background: #0f1714;
+    --color-surface: #16211d;
+    --color-surface-muted: #1d2a25;
+    --color-text: #e8f0ec;
+    --color-text-muted: #a3b7ae;
+    --color-border: #2b3c35;
+    --color-danger: #ff8a8f;
+    --color-danger-soft: #3b1d20;
+    --color-focus: #ffb067;
+    --color-on-brand: #06231b;
+    --color-success: #6fd6a0;
+    --color-warning: #f0c06a;
+    --shadow-card: 0 1rem 2.5rem rgb(0 0 0 / 35%);
+    --shadow-raised: 0 0.4rem 1rem rgb(0 0 0 / 40%);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-brand: #4fc3a1;
+  --color-brand-hover: #74d4b7;
+  --color-brand-soft: #143a31;
+  --color-accent: #f0b85f;
+  --color-accent-soft: #3a2d17;
+  --color-background: #0f1714;
+  --color-surface: #16211d;
+  --color-surface-muted: #1d2a25;
+  --color-text: #e8f0ec;
+  --color-text-muted: #a3b7ae;
+  --color-border: #2b3c35;
+  --color-danger: #ff8a8f;
+  --color-danger-soft: #3b1d20;
+  --color-focus: #ffb067;
+  --color-on-brand: #06231b;
+  --color-success: #6fd6a0;
+  --color-warning: #f0c06a;
+  --shadow-card: 0 1rem 2.5rem rgb(0 0 0 / 35%);
+  --shadow-raised: 0 0.4rem 1rem rgb(0 0 0 / 40%);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 * {
@@ -102,7 +166,7 @@ textarea {
 
 ::selection {
   background: var(--color-brand);
-  color: var(--color-surface);
+  color: var(--color-on-brand);
 }
 
 .page-container {
@@ -121,7 +185,7 @@ textarea {
   border-radius: var(--radius-pill);
   padding: 0.75rem 1.25rem;
   background: var(--color-brand);
-  color: var(--color-surface);
+  color: var(--color-on-brand);
   font-size: var(--font-size-sm);
   font-weight: 700;
   line-height: 1.25;
@@ -205,7 +269,7 @@ textarea {
   border: 2px solid var(--color-surface);
   border-radius: 50%;
   background: var(--color-brand);
-  color: var(--color-surface);
+  color: var(--color-on-brand);
   box-shadow: 0 1px 5px rgb(20 37 29 / 45%);
   font-size: 0.85rem;
 }

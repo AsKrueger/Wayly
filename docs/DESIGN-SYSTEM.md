@@ -21,6 +21,10 @@ Global tokens live in `src/styles.css` under `:root`.
 
 Use existing tokens before introducing component-specific values. Prefer semantic colors over raw values in new styles.
 
+## Themes
+
+Light is the default token set in `:root`. Dark tokens are applied when the system prefers dark and the user has not forced light, or when `<html data-theme="dark">` is set. `ThemeService` cycles automatic → dark → light from the header button and remembers the choice. Use `--color-on-brand` for text on brand backgrounds, never `--color-surface`, so both themes keep their contrast.
+
 ## Typography and layout
 
 The system uses a native system sans-serif stack, a fluid display size with `clamp()`, and separate heading/body line heights. `.page-container` provides a centered, bounded layout with fluid gutters. Start layouts as a single column and add columns at tablet/desktop breakpoints.

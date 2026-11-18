@@ -22,20 +22,7 @@ interface PreferenceOption<T extends string> {
   imports: [PlaceCardComponent, PlaceMapComponent],
   providers: [DiscoverStore],
   template: `
-    <header class="discover-header">
-      <div class="page-container discover-header__inner">
-        <a class="brand" href="#inicio" aria-label="Wayly, ir al inicio">
-          <span class="brand__mark" aria-hidden="true">w</span>
-          <span>wayly</span>
-        </a>
-        <span class="badge discover-header__badge">
-          <span class="discover-header__dot" aria-hidden="true"></span>
-          Tu próxima idea empieza aquí
-        </span>
-      </div>
-    </header>
-
-    <main id="inicio" class="discover-page">
+    <div id="inicio" class="discover-page">
       <section class="discover-intro page-container" aria-labelledby="discover-title">
         <div class="discover-intro__copy">
           <p class="eyebrow"><span aria-hidden="true"></span> DESCUBRE A TU MANERA</p>
@@ -350,17 +337,7 @@ interface PreferenceOption<T extends string> {
         </section>
         }
       </section>
-    </main>
-
-    <footer class="discover-footer">
-      <div class="page-container discover-footer__inner">
-        <a class="brand brand--footer" href="#inicio" aria-label="Wayly, volver al inicio">
-          <span class="brand__mark" aria-hidden="true">w</span>
-          <span>wayly</span>
-        </a>
-        <p>Tu tiempo. Tu lugar. Tu plan.</p>
-      </div>
-    </footer>
+    </div>
   `,
   styleUrl: './discover-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
