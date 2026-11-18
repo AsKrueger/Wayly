@@ -1,4 +1,4 @@
-import { PLACE_CATEGORY_LABELS, PlaceCategory } from '../../../core/domain/models/place-category';
+import { PlaceCategory } from '../../../core/domain/models/place-category';
 import { SAMPLE_PLACES } from './sample-places';
 
 describe('sample place fixtures', () => {
@@ -17,9 +17,9 @@ describe('sample place fixtures', () => {
     }
   });
 
-  it('covers each defined activity category', () => {
+  it('covers each category offered by the legacy Discover form', () => {
     const fixtureCategories = new Set(SAMPLE_PLACES.map((place) => place.category));
-    const expectedCategories = Object.keys(PLACE_CATEGORY_LABELS) as PlaceCategory[];
+    const expectedCategories: PlaceCategory[] = ['culture', 'nature', 'food', 'leisure'];
 
     expect(fixtureCategories).toEqual(new Set(expectedCategories));
   });
