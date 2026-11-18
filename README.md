@@ -76,4 +76,6 @@ La decisión de aplazar el proveedor externo hasta definir una búsqueda geográ
 
 La visualización cartográfica opcional usa Leaflet y, solo para lugares con coordenadas válidas, el servicio de teselas OSM bajo los límites documentados en [ADR-0008](docs/ADR/ADR-0008-Interactive-Map-Provider.md). Las fixtures actuales no tienen coordenadas, no se realizan peticiones de teselas para ellas y la aplicación sigue funcionando si el mapa no está disponible.
 
-La identidad visual, tokens y estados accesibles se describen en [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).
+La identidad visual, tokens, temas claro y oscuro y estados accesibles se describen en [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).
+
+La web está en español e inglés; cómo se añaden textos está en [docs/I18N.md](docs/I18N.md).

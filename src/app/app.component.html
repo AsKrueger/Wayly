@@ -1,1 +1,77 @@
-<router-outlet />
+<a class="skip-link" href="#main">{{ 'app.skipToContent' | t }}</a>
+
+<header class="site-header">
+  <div class="page-container site-header__inner">
+    <a class="brand" routerLink="/" [attr.aria-label]="'app.homeLink' | t">
+      <span class="brand__mark" aria-hidden="true">w</span>
+      <span>wayly</span>
+    </a>
+
+    <nav class="site-nav" [attr.aria-label]="'nav.primary' | t">
+      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">{{ 'nav.home' | t }}</a>
+      <a routerLink="/about" routerLinkActive="is-active" ariaCurrentWhenActive="page">{{ 'nav.about' | t }}</a>
+    </nav>
+
+    <div class="site-header__tools">
+      <div class="lang-switch" role="group" [attr.aria-label]="'nav.language' | t">
+        @for (language of languages; track language) {
+          <button
+            type="button"
+            [attr.lang]="language"
+            [attr.aria-pressed]="i18n.language() === language"
+            [attr.title]="languageName(language)"
+            (click)="i18n.setLanguage(language)"
+          >
+            {{ language.toUpperCase() }}
+          </button>
+        }
+      </div>
+      <button class="icon-button" type="button" [attr.aria-label]="themeLabel()" [attr.title]="themeLabel()" (click)="theme.cycle()">
+        @switch (theme.mode()) {
+          @case ('dark') {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          }
+          @case ('light') {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2m0 15v2M4.6 4.6 6 6m12 12 1.4 1.4M2.5 12h2m15 0h2M4.6 19.4 6 18M18 6l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          }
+          @default {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor"/></svg>
+          }
+        }
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="page-container site-footer__inner">
+    <div class="site-footer__brand">
+      <a class="brand brand--small" routerLink="/" [attr.aria-label]="'app.homeLink' | t">
+        <span class="brand__mark" aria-hidden="true">w</span>
+        <span>wayly</span>
+      </a>
+      <p>{{ 'app.tagline' | t }}</p>
+      <p class="site-footer__muted">{{ 'footer.promise' | t }}</p>
+    </div>
+    <div>
+      <h2 class="site-footer__title">{{ 'footer.dataTitle' | t }}</h2>
+      <ul class="site-footer__links">
+        <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">{{ 'footer.osm' | t }}</a></li>
+        <li><a href="https://www.wikipedia.org/" target="_blank" rel="noopener">{{ 'footer.wikipedia' | t }}</a></li>
+        <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">{{ 'footer.weather' | t }}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="site-footer__title">Wayly</h2>
+      <ul class="site-footer__links">
+        <li><a routerLink="/about">{{ 'nav.about' | t }}</a></li>
+        <li><a href="https://github.com/AsKrueger/Wayly" target="_blank" rel="noopener">{{ 'footer.source' | t }}</a></li>
+      </ul>
+      <p class="site-footer__muted">© {{ year }} Wayly</p>
+    </div>
+  </div>
+</footer>
