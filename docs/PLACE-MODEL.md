@@ -42,3 +42,18 @@ No external provider is currently selected or integrated. The catalog method has
 - Catalog specs check the local adapter's typed query result.
 - Place-card specs check complete optional details and partial records.
 - Discover specs continue to verify route rendering and preference-driven filtering through the catalog port.
+
+## Campos de Wayly 2.0
+
+Desde la #66 el modelo admite lugares reales de OpenStreetMap. Los campos nuevos son opcionales:
+
+| Campo | Significado |
+| --- | --- |
+| `kind` | Tipo concreto: `museum`, `viewpoint`, `cafe`… |
+| `openingHoursText` | Horario tal como se publica en OpenStreetMap (`opening_hours`) |
+| `costLevel` | Coste estimado por persona: `free`, `low`, `medium`, `high` |
+| `indoor` | A cubierto (útil si llueve) |
+| `notability` | Relevancia de 0 a 1 |
+| `website`, `wikipedia`, `wikidata`, `wheelchair` | Datos adicionales cuando existen |
+
+Las categorías pasan a ser siete: `culture`, `sights`, `nature`, `food`, `drinks`, `leisure` y `family`. Cómo se obtienen está en [DATA-SOURCES.md](DATA-SOURCES.md).

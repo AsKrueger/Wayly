@@ -16,7 +16,7 @@ All the services below were tested from the browser origin on 2026-11-18. All of
 | --- | --- | --- | --- |
 | Search a city, neighbourhood or address | [Photon](https://photon.komoot.io) (komoot) | OpenStreetMap data, ODbL | Fair use; heavy use is throttled. We wait 350 ms after typing stops, need 3 characters and send one request at a time. |
 | "Use my location" | Browser Geolocation API, then Photon reverse search for the name | — | Only after the user presses the button. The position is used for the query and kept only on the device. |
-| Places | [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) public instances: `overpass-api.de`, then `overpass.private.coffee` | © OpenStreetMap contributors, ODbL | One bounded query per plan (radius from 1.2 to 3.5 km depending on available time, at most 400 elements, 25 s timeout). Results cached on the device for 24 h by rounded position. On HTTP 429 or 5xx the next instance is tried; there is no retry loop. |
+| Places | [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) public instances: `overpass-api.de`, then `overpass.private.coffee`. **Backup:** Photon nearby search filtered by the same tag rules | © OpenStreetMap contributors, ODbL | One bounded query per plan (radius up to 5 km, at most 70 elements per category plus 60 notable ones, 12 s server timeout). Results cached on the device for 24 h by rounded position. On HTTP 429, 5xx or timeout the next instance is tried, then Photon (no opening hours or Wikidata); there is no retry loop. |
 | Photo and summary of notable places | Wikipedia REST `page/summary`, in the user's language | Text CC BY-SA, images under their own licence, shown with a link to the article | Only for places with a `wikipedia` tag, only when the user opens or sees the stop. |
 | Weather | [Open-Meteo](https://open-meteo.com) forecast | CC BY 4.0, attribution to Open-Meteo | Free for non-commercial use under 10,000 calls a day. One call per plan. **Before ads are enabled (phase 6) this must be reviewed**, because ads make the site commercial; the fallback is to hide the weather. |
 | Map tiles | OpenStreetMap standard tiles ([ADR-0008](ADR-0008-Interactive-Map-Provider.md)) | © OpenStreetMap contributors | Unchanged from ADR-0008. |
@@ -27,7 +27,8 @@ Further decisions:
 2. **No location cascade.** One search box plus a location button replace the country → region → province → locality selector.
 3. **Domain stays independent of providers.** The engine works on `Place` objects; adapters translate OpenStreetMap tags (ADR-0004). Tests never call the network.
 4. **Honest data.** Places from OpenStreetMap are marked `unverified`. Costs and visit durations are estimates by type, and the interface says so.
-5. **Static catalogue work is archived.** The generator from #53 stays in the `feature/issue53` branch. It is the exit plan below, not part of the application.
+5. **Backup source.** During implementation (2026-11-18) the main Overpass instance answered "at capacity" and the second one timed out. Photon's nearby search with OpenStreetMap tag filters was verified as a backup and is used automatically. Details in [DATA-SOURCES.md](../DATA-SOURCES.md).
+6. **Static catalogue work is archived.** The generator from #53 stays in the `feature/issue53` branch. It is the exit plan below, not part of the application.
 
 ## Consequences
 
