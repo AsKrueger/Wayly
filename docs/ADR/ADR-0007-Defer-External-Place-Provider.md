@@ -1,6 +1,6 @@
 # ADR-0007: Defer External Place Provider
 
-- Status: Accepted. The location criteria are superseded by [ADR-0009](ADR-0009-Location-Selection.md).
+- Status: Superseded by [ADR-0010](ADR-0010-Open-Data-At-Runtime.md) on 2026-11-18 (location criteria first replaced by ADR-0009).
 - Date: 2026-10-10
 
 ## Context

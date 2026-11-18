@@ -73,82 +73,54 @@ Al terminar una fase se notifica y se hacen tres cosas, en este orden:
 
 **Salida:** cero avisos altos o críticos en dependencias de producción y línea base vacía o casi vacía.
 
-### Fase 2: Demo sólida y desplegada
-
-**Objetivo:** que lo que ya existe funcione bien, se pueda enseñar y esté descrito con exactitud.
-
-| ID | Issue | Título | Alcance |
-| --- | --- | --- | --- |
-| F2-1 | | Mapa robusto | Leaflet en diferido y tolerancia a fallos aislados de tesela |
-| F2-2 | | Refactor de Discover | Partir `discover-page.component.ts`, extraer la tarjeta de recomendación y unificar etiquetas |
-| F2-3 | | Doble llamada a `selectPlace` | Corrección de error; rama `bugfix/...` |
-| F2-4 | | Documentación fiel | Alinear `docs/ARCHITECTURE.md` con lo implementado, marcando lo previsto como previsto |
-| F2-5 | | Despliegue | Hosting gratuito (GitHub Pages o plan gratuito de Firebase Hosting), separado del CI |
-
-**Salida:** URL pública de la demo y documentación que no promete de más.
-
 ### Fase 3: Decisiones de producto
 
-**Objetivo:** resolver los criterios que ADR-0007 dejó abiertos. Bloquea las fases 4 a 6.
+**Objetivo:** resolver los criterios que ADR-0007 dejó abiertos.
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F3-1 | #52 | Geografía y ubicación | Selección país → región → provincia → localidad en el formulario, radio de 15 km, sin límite de resultados, cobertura por países (España primero) y atribución, recogidos en el ADR-0009 |
+| F3-1 | #52 | Geografía y ubicación | Selección país → región → provincia → localidad, radio de 15 km y atribución, recogidos en el ADR-0009 |
 
-**Salida:** un ADR nuevo que sustituya los criterios de revisión de ADR-0007.
+**Salida:** ADR-0009. Cerrada el 2026-10-26 y sustituida después por el [ADR-0010](ADR/ADR-0010-Open-Data-At-Runtime.md).
 
-Esta fase no depende del código y puede resolverse en paralelo a las fases 1 y 2.
+### Fases 2, 4, 5 y 6 originales: sustituidas
 
-### Fase 4: Datos reales sin coste
+El 2026-11-18 el propietario pidió rehacer Wayly para que sea la mejor opción frente a la competencia, con libertad total. El análisis está en [COMPETITORS.md](COMPETITORS.md) y las decisiones en el [ADR-0010](ADR/ADR-0010-Open-Data-At-Runtime.md) y el [ADR-0011](ADR/ADR-0011-GitHub-Pages-Hosting.md).
 
-**Objetivo:** sustituir las fixtures ficticias por lugares reales sin proveedor de pago, sin clave y sin backend.
+- La fase 2 (demo y despliegue) queda dentro de la fase 5.
+- La fase 4 (catálogo estático de España, #53 y #54) se sustituye por datos abiertos en tiempo real de todo el mundo. El generador queda archivado en la rama `feature/issue53` como plan de salida.
+- Las fases 5 (motor v2) y 6 (planes) originales se reorganizan en la nueva fase 5.
 
-| ID | Issue | Título | Alcance |
-| --- | --- | --- | --- |
-| F4-1 | #53 | Catálogo desde OpenStreetMap | Generar un catálogo estático por localidad de España a partir de un extracto, procesado fuera de línea, y documentar cómo se regenera |
-| F4-2 | #54 | Adaptador de catálogo estático | Nuevo adaptador de `PlaceCatalog` sobre JSON, selector en cascada por localidad, atribución de OpenStreetMap y cumplimiento de ODbL |
+### Fase 5: Wayly 2.0 (MVP)
 
-**Salida:** Discover muestra lugares reales con coordenadas y el mapa se ve.
-
-**Limitaciones asumidas:** el catálogo se actualiza a mano y OpenStreetMap no aporta precios, así que el presupuesto sigue siendo una estimación por categoría.
-
-### Fase 5: Motor v2
-
-**Objetivo:** que la recomendación use la información que ya tendrá el catálogo.
+**Objetivo:** que cualquiera, en cualquier sitio, tenga un plan completo y explicable en segundos, gratis y sin registrarse, en español o inglés.
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F5-1 | | Consulta geográfica y distancia | Ampliar el puerto `PlaceCatalog` e incorporar la distancia al filtrado y a la puntuación |
-| F5-2 | | Horarios de apertura | Usar `openingHours` en la compatibilidad |
-| F5-3 | | Preferencias y puntuación | Preferencias cualitativas y revisión de la puntuación por tiempo, que hoy premia llenar el hueco disponible |
+| F5-1 | #64 | Competencia y decisiones | `COMPETITORS.md`, ADR-0010, ADR-0011, esta roadmap |
+| F5-2 | #65 | Español e inglés, estructura y modo oscuro | Traducción tipada, cabecera, pie, rutas, tema |
+| F5-3 | #66 | Lugares reales de todo el mundo | Photon, geolocalización opcional, Overpass, Wikipedia, Open-Meteo |
+| F5-4 | #67 | Motor v2 y generador de planes | Horarios, puntuación, tres planes, razones, «Sorpréndeme» |
+| F5-5 | #68 | Experiencia de plan completa | Inicio, progreso, plan, mapa con ruta, comparar, editar, compartir |
+| F5-6 | #69 | Guardados y PWA | Guardados, favoritos, recientes, instalación y uso sin conexión |
+| F5-7 | #70 | Despliegue gratuito y SEO | GitHub Pages, 404.html, CSP, Open Graph |
 
-**Salida:** puntos 3, 5 y 10 del MVP cubiertos, con razones explicables.
+**Salida:** URL pública con los 15 puntos del MVP de `docs/PRODUCT.md` cumplidos.
 
-### Fase 6: Planes de verdad
+### Fase 6: Publicidad
 
-**Objetivo:** pasar de recomendar lugares a proponer planes.
+**Objetivo:** monetizar sin perder la confianza del usuario.
 
 | ID | Issue | Título | Alcance |
 | --- | --- | --- | --- |
-| F6-1 | | Generador de planes | Planes de varios lugares con coste, duración y desplazamiento totales, mostrando el progreso real |
-| F6-2 | | Plan Battle entre planes | Comparar planes completos en lugar de lugares sueltos |
-| F6-3 | | Edición del plan | Modificar el plan elegido |
-| F6-4 | | Sincronización | Mapa, lista y plan sincronizados en ambos sentidos |
+| F6-1 | #71 | Publicidad señalizada y con consentimiento | Espacios etiquetados, consentimiento, AdSense configurable, `ads.txt` |
 
-**Salida:** los 15 puntos del MVP de `docs/PRODUCT.md` cumplidos.
-
-## Después del MVP
-
-Solo si sigue siendo gratis:
-
-- PWA.
-- «Sorpréndeme».
-- Clima mediante una API abierta sin clave.
-- Planes guardados en el dispositivo, en lugar de con autenticación.
+**Salida:** publicidad lista para activarse en cuanto haya cuenta de AdSense aprobada, sin cargar nada de terceros sin consentimiento.
 
 ## Fuera de alcance
 
 - Proveedores de lugares de pago.
+- Reseñas propias, reservas y eventos con fecha (ver [COMPETITORS.md](COMPETITORS.md)).
 - Backend propio, autenticación y base de datos.
 - Funciones de GitHub que requieran plan de pago.
 
@@ -159,3 +131,4 @@ Solo si sigue siendo gratis:
 | 2026-10-11 | Ninguna (creación) | Sin referencia todavía | Versión inicial, reestructurada desde cero | Fase 0 |
 | 2026-10-11 | Fase 0 | Sin referencia previa; cerrada el mismo día que se creó la roadmap | Sin cambios de alcance; la excepción de Dependabot deja de aplicarse | Fase 1 |
 | 2026-10-25 | Ninguna (revisión tras F1-2) | Según lo previsto | F1-5 (Angular 22) añadida tras el análisis de la #19; fila de la F1-1 y F1-2 confirmadas | F1-5 (#42), después F1-3 |
+| 2026-11-18 | Ninguna (relanzamiento) | Más lento de lo previsto: la fase 4 estaba bloqueada por el volumen del catálogo de España | Fases 2, 4, 5 y 6 sustituidas por la fase 5 (Wayly 2.0) y la fase 6 (publicidad); #53 y #54 cerradas | F5-2 (#65) |

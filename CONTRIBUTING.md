@@ -8,7 +8,8 @@ No se contrata ningún servicio ni se activa ninguna función de pago. Cualquier
 
 ## Ramas
 
-- **Ninguna rama se crea sin aprobación del propietario del repositorio.**
+- Desde el 2026-11-18 el asistente crea las ramas, los commits y las PR por encargo del propietario. Todo queda asignado al propietario, documentado y cerrado al terminar.
+- **Ningún commit ni PR lleva firma de IA** (ni `Co-Authored-By` ni textos de «generado con»).
 - `develop` es la rama de trabajo de todas las fases.
 - `main` solo recibe cambios al cerrar una fase, mediante una PR desde `develop`.
 - Una rama por issue, creada desde `develop`: `feature/issueN`, donde N es el número que GitHub asigna a la issue.

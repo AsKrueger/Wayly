@@ -3,11 +3,25 @@
 ## Nombre y tagline
 
 - Nombre: Wayly
-- Tagline: Tu tiempo. Tu lugar. Tu plan.
+- Tagline: Tu tiempo. Tu lugar. Tu plan. (EN: Your time. Your place. Your plan.)
 
 ## Descripción
 
 Wayly es una aplicación web responsive y mobile-first que ayuda a decidir qué hacer en una ciudad o una zona determinada. El sistema interpreta restricciones, preferencias y contexto para convertirlos en planes concretos y accionables.
+
+## Wayly 2.0 (desde el 2026-11-18)
+
+La propuesta de valor se rehízo a partir del [análisis de competencia](COMPETITORS.md):
+
+- **Valor en 10 segundos:** sin registro; «Sorpréndeme» o tres decisiones y hay plan.
+- **Planes, no listas:** tres planes completos con horas, trayectos a pie, duración, distancia y coste estimado.
+- **Explicable:** cada parada dice por qué está en el plan.
+- **Cualquier sitio del mundo** con datos abiertos ([ADR-0010](ADR/ADR-0010-Open-Data-At-Runtime.md)).
+- **Contexto real:** horarios de apertura y el tiempo que hace.
+- **Gratis de verdad, privado y en español e inglés.**
+- **Publicidad honesta** tras el MVP: siempre etiquetada, nunca dentro del plan y con consentimiento.
+
+Los 15 puntos del MVP de abajo siguen siendo el criterio de cierre de la fase 5.
 
 ## Problema que resuelve
 
