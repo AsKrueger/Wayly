@@ -1,4 +1,6 @@
 {
-  "reviewedOn": "2026-10-25",
-  "knownHighCriticalGhsas": []
+  "reviewedOn": "2026-11-18",
+  "knownHighCriticalGhsas": [
+    "GHSA-fc5q-39xc-vjpf"
+  ]
 }
