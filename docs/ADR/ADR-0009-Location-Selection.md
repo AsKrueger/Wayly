@@ -1,6 +1,6 @@
 # ADR-0009: Location Selection and Per-Locality Catalogues
 
-- Status: Proposed. Pending owner approval of the attribution text and the Spanish administrative mapping (see Open items).
+- Status: Superseded by [ADR-0010](ADR-0010-Open-Data-At-Runtime.md) on 2026-11-18. It was accepted on 2026-10-26 in the archived branch `feature/issue53`; the cascade and the static catalogues were replaced by worldwide open data at runtime.
 - Date: 2026-10-26
 - Supersedes the location criteria of [ADR-0007](ADR-0007-Defer-External-Place-Provider.md).
 

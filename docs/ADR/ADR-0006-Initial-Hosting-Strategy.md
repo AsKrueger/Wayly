@@ -1,6 +1,6 @@
 # ADR-0006: Initial Hosting Strategy
 
-- Status: Accepted
+- Status: Superseded by [ADR-0011](ADR-0011-GitHub-Pages-Hosting.md) on 2026-11-18.
 - Date: 2026-10-07
 
 ## Context
