@@ -158,6 +158,42 @@ describe('WikipediaDetails', () => {
     await expect(subject.summary(place, 'en')).resolves.toBeNull();
     await expect(subject.summary({ ...place, id: 'other' }, 'es')).resolves.toBeNull();
   });
+
+  it('only keeps https images from the Wikimedia upload server', async () => {
+    const { subject } = withFetch(
+      WikipediaDetails,
+      { body: { ...summary, thumbnail: { source: 'http://upload.wikimedia.org/x.jpg' } } },
+      { body: { ...summary, thumbnail: { source: 'not a url' } } },
+      { body: { ...summary, thumbnail: undefined, title: undefined } },
+    );
+    const insecure = await subject.summary({ ...place, id: 'insecure' }, 'es');
+    const malformed = await subject.summary({ ...place, id: 'malformed' }, 'es');
+    const withoutImage = await subject.summary({ ...place, id: 'no-image' }, 'es');
+    expect(insecure?.imageUrl).toBeUndefined();
+    expect(malformed?.imageUrl).toBeUndefined();
+    expect(withoutImage?.imageUrl).toBeUndefined();
+    expect(withoutImage?.title).toBe('Catedral de Sevilla');
+  });
+
+  it('ignores malformed Wikidata ids and falls back to the tagged article', async () => {
+    const { subject, fetch } = withFetch(WikipediaDetails, { body: summary });
+    await subject.summary({ ...place, wikidata: 'Q1&ids=Q2' }, 'en');
+    expect(fetch.calls).toHaveLength(1);
+    expect(fetch.calls[0].url).toBe('https://es.wikipedia.org/api/rest_v1/page/summary/Catedral_de_Sevilla');
+  });
+
+  it('does not request a summary when Wikidata has no article and there is no tag', async () => {
+    const { subject, fetch } = withFetch(WikipediaDetails, { body: { entities: {} } });
+    await expect(subject.summary({ ...place, wikipedia: undefined }, 'en')).resolves.toBeNull();
+    expect(fetch.calls).toHaveLength(1);
+    expect(fetch.calls[0].url).toContain('https://www.wikidata.org/w/api.php?');
+  });
+
+  it('encodes the article title so it cannot change the request path', async () => {
+    const { subject, fetch } = withFetch(WikipediaDetails, { body: summary });
+    await subject.summary({ ...place, wikidata: undefined, wikipedia: 'fr:AC/DC ?x=1#y' }, 'es');
+    expect(fetch.calls[0].url).toBe('https://fr.wikipedia.org/api/rest_v1/page/summary/AC%2FDC_%3Fx%3D1%23y');
+  });
 });
 
 describe('BrowserLocator', () => {
