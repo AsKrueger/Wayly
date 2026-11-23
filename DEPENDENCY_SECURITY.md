@@ -36,8 +36,10 @@ numbers are not expected to match:
 
 `security/npm-audit-baseline.json` was empty from issue #42 until 2026-11-18,
 when GHSA-fc5q-39xc-vjpf (`picomatch`, development only, no patch available)
-was added with the owner's approval; see "Baseline policy". The gate compares
-advisory IDs, not package counts.
+was added with the owner's approval; see "Baseline policy". On 2026-11-23
+`npm audit` stopped reporting that advisory for the locked `picomatch`
+versions (2.3.2 and 4.0.7), so the gate failed on the stale entry and the
+baseline is empty again. The gate compares advisory IDs, not package counts.
 
 ## Exception and remediation plan
 
@@ -90,7 +92,7 @@ Entries added after 2026-10-11:
 | Advisory | Package and scope | Reason | Exit condition | Approved on |
 |---|---|---|---|---|
 | GHSA-587h-7wmj-h5pm | `vite`, development and build | The only fix is `@angular-devkit/build-angular` 21, a major update (rule 4). | Closed on 2026-10-25 by Angular 21 (F1-5, #42) | 2026-10-25, pending confirmation by the repository owner |
-| GHSA-fc5q-39xc-vjpf | `picomatch` 2.3.2 and 4.0.7, development and build only (`@angular/build`, `vite`, Jest) | ReDoS with extglob patterns. No patched release exists on 2026-11-18 (4.0.7 is the latest). The patterns come from the repository's own build and test configuration, not from user input, and `npm audit --omit=dev` reports 0 vulnerabilities. | Remove when a patched `picomatch` is published and the lock file is updated; the gate fails on the stale entry. | 2026-11-18 by the repository owner |
+| GHSA-fc5q-39xc-vjpf | `picomatch` 2.3.2 and 4.0.7, development and build only (`@angular/build`, `vite`, Jest) | ReDoS with extglob patterns. No patched release exists on 2026-11-18 (4.0.7 is the latest). The patterns come from the repository's own build and test configuration, not from user input, and `npm audit --omit=dev` reports 0 vulnerabilities. | Removed on 2026-11-23: `npm audit` no longer reports it for the locked versions and the gate failed on the stale entry. | 2026-11-18 by the repository owner |
 
 `npm audit signatures` succeeded for the installed dependency tree during this
 review: registry signatures were verified for the reported packages. npm
