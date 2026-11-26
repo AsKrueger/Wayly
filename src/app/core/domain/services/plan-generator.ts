@@ -211,11 +211,16 @@ function diversityPenalty(candidate: Candidate, chosen: readonly Candidate[]): n
   if (chosen.filter((existing) => existing.place.category === candidate.place.category).length >= 2) {
     penalty += 20;
   }
-  // One meal per plan is enough.
-  if (candidate.place.category === 'food' && chosen.some((existing) => existing.place.category === 'food')) {
-    penalty += 40;
-  }
   return penalty;
+}
+
+/**
+ * One meal per plan is enough. A penalty is not enough to guarantee it: a
+ * second restaurant at meal time can still outscore the remaining places once
+ * another stop sits between both meals.
+ */
+function isSecondMeal(candidate: Candidate, chosen: readonly Candidate[]): boolean {
+  return candidate.place.category === 'food' && chosen.some((existing) => existing.place.category === 'food');
 }
 
 function totalsFor(stops: readonly PlanStop[]): Plan['totals'] {
@@ -256,7 +261,7 @@ export function buildPlan(
     let best: { candidate: Candidate; stop: PlanStop; value: number } | null = null;
 
     for (const candidate of candidates) {
-      if (chosen.includes(candidate)) {
+      if (chosen.includes(candidate) || isSecondMeal(candidate, chosen)) {
         continue;
       }
       const meters = walkingMeters(position, candidate.place.coordinates);
