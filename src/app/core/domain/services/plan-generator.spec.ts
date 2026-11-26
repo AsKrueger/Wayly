@@ -220,6 +220,55 @@ describe('editing a plan', () => {
   });
 });
 
+describe('variety and scoring details', () => {
+  // Every place sits at the same spot, so walks never decide between them.
+  const at = (preferences: Partial<PlanPreferences>, places: Place[]) => context(preferences, { places });
+
+  it('does not repeat a kind of place while there are alternatives', () => {
+    const places = [
+      place('museum-a', { kind: 'museum', notability: 0.5 }),
+      place('museum-b', { kind: 'museum', notability: 0.5 }),
+      place('gallery', { kind: 'gallery', notability: 0.2 }),
+    ];
+    expect(ids(buildPlan(at({}, places), 'balanced'))).toEqual(['museum-a', 'gallery']);
+  });
+
+  it('prefers a less notable place of another category over a third one of the same category', () => {
+    const places = [
+      place('culture-1', { kind: 'museum', notability: 1 }),
+      place('culture-2', { kind: 'gallery', notability: 1 }),
+      place('culture-3', { kind: 'arts_centre', notability: 1 }),
+      place('sight', { category: 'sights', kind: 'monument', notability: 0.4 }),
+    ];
+    expect(ids(buildPlan(at({}, places), 'balanced'))).toEqual(['culture-1', 'culture-2', 'sight']);
+  });
+
+  it('gives a small bonus to places with a website', () => {
+    const scoreOf = (candidate: Place) => buildPlan(at({}, [candidate]), 'balanced').stops[0].score;
+    expect(scoreOf(place('with-web', { website: 'https://example.org' }))).toBe(scoreOf(place('plain', {})) + 2);
+  });
+});
+
+describe('plan edits that no longer fit', () => {
+  it('rejects a rebuild whose open places exceed the available time', () => {
+    const plan = buildPlan(context({ durationMinutes: 180 }), 'balanced');
+    // 60 + 40 + 20 minutes of visits plus the walks between them.
+    const places = PLACES.filter((candidate) => ['museum', 'gallery', 'cathedral'].includes(candidate.id));
+    expect(rebuildPlan(plan, places, context({ durationMinutes: 180 }))).not.toBeNull();
+    expect(rebuildPlan(plan, places, context({ durationMinutes: 120 }))).toBeNull();
+  });
+
+  it('offers no alternatives when another stop is no longer available', () => {
+    const ctx = context({ durationMinutes: 180 });
+    const plan = buildPlan(ctx, 'balanced');
+    expect(plan.stops.length).toBeGreaterThan(1);
+    const gone = plan.stops[1].place.id;
+    const withoutIt = { ...ctx, places: PLACES.filter((candidate) => candidate.id !== gone) };
+    expect(alternativesForStop(plan, 0, withoutIt)).toEqual([]);
+    expect(alternativesForStop(plan, 0, ctx).length).toBeGreaterThan(0);
+  });
+});
+
 describe('surprise', () => {
   it('produces valid, reproducible preferences', () => {
     const first = surprisePreferences(42);
