@@ -142,6 +142,22 @@ describe('buildPlan', () => {
     expect(meals[0].reasons).toContainEqual({ type: 'meal-time' });
   });
 
+  it('never adds a second meal, even with another stop between them', () => {
+    // Without a hard rule the second restaurant came back after the short
+    // visit to the plaque, still at lunch time.
+    const places = [
+      place('tapas', { category: 'food', kind: 'restaurant', openingHoursText: 'Mo-Su 12:00-16:00' }),
+      place('bistro', { category: 'food', kind: 'fast_food', estimatedVisitMinutes: 20, openingHoursText: 'Mo-Su 12:00-16:00' }),
+      place('plaque', { kind: 'memorial', estimatedVisitMinutes: 10 }),
+    ];
+    const lunch = new Date(2026, 10, 16, 13, 0);
+    for (const strategy of ['balanced', 'nearby', 'highlights'] as const) {
+      const plan = buildPlan(context({ categories: ['food', 'culture'] }, { places, start: lunch }), strategy);
+      expect(plan.stops.filter((stop) => stop.place.category === 'food')).toHaveLength(1);
+      expect(ids(plan)).toContain('plaque');
+    }
+  });
+
   it('walks less in the nearby strategy than in highlights', () => {
     const nearby = buildPlan(context({ durationMinutes: 240 }), 'nearby');
     const highlights = buildPlan(context({ durationMinutes: 240 }), 'highlights');
