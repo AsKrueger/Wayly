@@ -97,6 +97,51 @@ describe('placeFromOverpass', () => {
     expect(odd?.id).toBe('osm-r3');
     expect(odd?.notability).toBe(0.05);
   });
+
+  it('adds notability for viewpoints, attractions and pictures', () => {
+    const node = (tags: Record<string, string>): OverpassElement => ({ type: 'node', id: 7, lat: 1, lon: 1, tags });
+    expect(placeFromOverpass(node({ tourism: 'viewpoint', name: 'Mirador' }), 'es')?.notability).toBe(0.1);
+    expect(placeFromOverpass(node({ tourism: 'attraction', name: 'Atracción' }), 'es')?.notability).toBe(0.1);
+    expect(placeFromOverpass(node({ tourism: 'gallery', name: 'G', image: 'https://x/y.jpg' }), 'es')?.notability).toBe(0.1);
+    expect(placeFromOverpass(node({ tourism: 'gallery', name: 'G', wikimedia_commons: 'Category:G' }), 'es')?.notability).toBe(0.1);
+    const everything = node({
+      tourism: 'viewpoint',
+      name: 'Mirador',
+      wikipedia: 'es:Mirador',
+      heritage: '2',
+      image: 'https://x/y.jpg',
+      'contact:website': 'mirador.example',
+    });
+    expect(placeFromOverpass(everything, 'es')?.notability).toBe(1);
+  });
+
+  it('uses fallback tags and ignores values it does not understand', () => {
+    const tags = {
+      leisure: 'park',
+      name: 'Parque',
+      'contact:website': 'http://parque.example/info',
+      description: 'Parque grande',
+      'description:en': 'Big park',
+      wheelchair: 'sometimes',
+      opening_hours: '   ',
+      indoor: 'yes',
+      wikidata: 'Q2',
+    };
+    const place = placeFromOverpass({ type: 'node', id: 8, lat: 1, lon: 1, tags }, 'en');
+    expect(place).toEqual(
+      expect.objectContaining({
+        website: 'http://parque.example/info',
+        description: 'Big park',
+        wheelchair: undefined,
+        openingHoursText: undefined,
+        location: undefined,
+        indoor: true,
+        wikidata: 'Q2',
+        wikipedia: undefined,
+      }),
+    );
+    expect(placeFromOverpass({ type: 'node', id: 8, lat: 1, lon: 1, tags }, 'es')?.description).toBe('Parque grande');
+  });
 });
 
 describe('buildOverpassQuery', () => {
